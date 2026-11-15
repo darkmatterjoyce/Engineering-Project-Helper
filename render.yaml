@@ -1,0 +1,38 @@
+# Render blueprint: New + → Blueprint → pick this repo. Fill in the secret values when Render asks.
+services:
+  - type: web
+    name: engineering-project-helper
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn eph.api:app --host 0.0.0.0 --port $PORT --no-access-log
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: EPH_MOCK
+        value: "0"
+      # public-site safety: builds per 24 h (each build spends API credits), and no deleting
+      - key: EPH_DAILY_BUILD_LIMIT
+        value: "15"
+      - key: EPH_ALLOW_DELETE
+        value: "0"
+      # secrets: Render asks for these when you create the service (leave any you don't use empty)
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: LINKUP_API_KEY
+        sync: false
+      - key: DATABRICKS_HOST
+        sync: false
+      - key: DATABRICKS_HTTP_PATH
+        sync: false
+      - key: DATABRICKS_TOKEN
+        sync: false
+      - key: DATABRICKS_CATALOG
+        value: workspace
+      - key: DATABRICKS_SCHEMA
+        value: eph

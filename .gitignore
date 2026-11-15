@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+out/
+.pytest_cache/
+.venv/
+demo.html
+demo_data.json

@@ -63,14 +63,87 @@ flowchart LR
 | **Choose your models** | Pick the Engineer and the Bar Raiser separately: Claude, Gemini, Groq (free tiers work), or the offline demo. |
 | **Improve a project** | Describe what you'd like changed; the feedback is mapped onto decisions and only those are rebuilt and re-reviewed. |
 
-## Sponsor integrations
+## Sponsor tracks
 
-- **Databricks**: the durable store. Runs, every decision version, reviews, outputs and the agent's memory are
-  rows in Delta tables, one per kind of record. The app shows live row counts and ready-to-run SQL under
-  *Behind the build → Storage*. Writes are batched in the background so the agent never waits on the warehouse.
-- **Linkup**: live `sourcedAnswer` search verifies every part's pins, voltages and logic levels, finds buy links,
-  and supplies the citations shown on the parts list.
-- **MongoDB Atlas** (alternative store): the same app runs on Atlas, with Atlas Vector Search for memory.
+### Databricks: the agent's memory and audit trail
+
+Every run is a growing record: dozens of decisions, each re-versioned whenever the Bar Raiser or the user
+changes something, plus review rounds, outputs and memory. All of it lives in **Delta tables** in your
+Databricks workspace, one table per kind of record:
+
+| Delta table | What one row is |
+|---|---|
+| `eph_runs` | a project: prompt, models used, status, acceptance criteria, event log |
+| `eph_decisions` | **one version of one decision** (part, pin, wiring, firmware…), with rationale, alternatives, evidence, confidence, the decisions it depends on, and the Bar Raiser's review |
+| `eph_artifacts` | an output: parts list, cart, wiring and breadboard drawing, firmware, compile log, flow diagram, build guide |
+| `eph_reviews` | one Bar Raiser review round: what was checked, challenged and why |
+| `eph_precedents` | the agent's memory: an approved project, its embedding, and every mistake the reviewer caught |
+| `eph_search_cache` | Linkup answers, reused for 7 days so reruns don't spend credits |
+| `eph_explanations` | cached "explain this code" answers |
+
+**How it works** (`eph/databricks_store.py`):
+
+- **Nothing is ever overwritten.** A changed decision is a new row with `version + 1`; the old one is marked
+  superseded. The full history of every choice, and of every partial rebuild, is queryable.
+- **The agent never waits on the warehouse.** Writes go into a queue and a background thread flushes them every
+  ~2 s as **one `MERGE` per table**. Several updates to the same record in that window collapse into one row
+  write. Failed writes (for example while a serverless warehouse wakes up) stay queued and retry.
+- **Survives restarts.** On startup the tables are read back, so every past project, its decision history and
+  the agent's memory come back exactly as they were.
+- **Visible in the app.** *Behind the build → Storage* shows **live row counts read from Databricks**, for all
+  projects and for the open one, the sync status, and ready-to-run SQL with a Copy button.
+- **Deleting a project deletes its rows** in every table.
+
+Try it in the Databricks SQL editor:
+
+```sql
+-- the full decision history of one project, every version
+SELECT get_json_object(doc, '$.key')                    AS decision,
+       CAST(get_json_object(doc, '$.version') AS INT)   AS version,
+       get_json_object(doc, '$.status')                 AS status,
+       get_json_object(doc, '$.title')                  AS title
+FROM workspace.eph.eph_decisions
+WHERE get_json_object(doc, '$.run_id') = '<project id>'
+ORDER BY decision, version;
+
+-- everything the Bar Raiser challenged, across all projects
+SELECT get_json_object(doc, '$.key')             AS decision,
+       get_json_object(doc, '$.review.severity') AS severity,
+       get_json_object(doc, '$.review.notes')    AS notes
+FROM workspace.eph.eph_decisions
+WHERE get_json_object(doc, '$.review.verdict') = 'challenge';
+```
+
+Setup takes three values (Free Edition works): `DATABRICKS_HOST` and `DATABRICKS_HTTP_PATH` from
+*SQL Warehouses → your warehouse → Connection details*, and `DATABRICKS_TOKEN` from
+*Settings → Developer → Access tokens*. The schema and tables are created automatically.
+
+### Linkup: grounding every part in the real world
+
+An LLM's memory of a part's pinout or voltage is a guess. Linkup turns it into evidence, at two points:
+
+1. **Part verification (parts stage).** Every non-passive part gets a live Linkup `sourcedAnswer` search, using
+   a query the parts model writes for it (for example *"DS18B20 waterproof probe pinout supply voltage"*). The
+   searches run **in parallel**. Each answer and its top sources go to a verifier model, which uses only that
+   evidence (plus well-established facts) to confirm pin names, supply voltage and logic level, and corrects
+   the claim when the evidence disagrees. A part counts as verified only when the model confirms it **and**
+   there are sources.
+2. **Shopping list (procurement stage).** For each part, a second search (*"buy <model> UK price in stock"*)
+   supplies the **buy link** and, when the answer states one, a **live price**. Anything without a live price is
+   marked as an estimate, and the run's gap list says how many.
+
+The sources are stored as **evidence on the decision itself** (URL, title, snippet, time retrieved), so they
+travel with the decision log into Databricks. In the app, the parts list shows a summary such as
+*"8 of 9 parts checked by Linkup · 14 web sources cited · 3 of 9 prices are live listings"* and, on each part,
+the sites it was checked against (e.g. *"Checked by Linkup: adafruit.com · espressif.com"*) as clickable links. Results are cached for 7 days, so
+rebuilds and reruns don't spend credits. Tavily is a drop-in fallback (`TAVILY_API_KEY`).
+
+### MongoDB Atlas: alternative store
+
+Set `MONGODB_URI` instead of the Databricks values and the same app runs on Atlas: the decision log, reviews,
+artifacts and a TTL search cache are collections, and the agent's memory uses **Atlas Vector Search**
+(`$vectorSearch` on the precedent embeddings, optionally from Voyage AI). `python scripts/init_atlas.py` creates
+the vector index.
 
 ## Quick start
 
@@ -117,6 +190,22 @@ no API calls.
 
 4. Restart the server, open the app, pick an **Engineer** and an **Independent reviewer**, and build.
 
+## Deploy it (public link)
+
+The repo includes a `render.yaml`, so it deploys on [Render](https://render.com) in a few clicks:
+
+1. Render → **New + → Blueprint** → connect GitHub and pick this repo.
+2. Fill in the secret values Render asks for (the same as your `.env`), then **Apply**.
+3. Wait for the build, then open the `onrender.com` link. Projects are stored in Databricks, so they survive
+   Render restarts.
+
+On a public site, `EPH_DAILY_BUILD_LIMIT` (default 15) caps how many builds and improvements can run per 24 hours,
+because each one spends API credits, and `EPH_ALLOW_DELETE=0` stops visitors from deleting projects. The free plan
+sleeps after 15 minutes without visitors, so the first page load can take about a minute.
+
+`python scripts/export_demo.py` + `python scripts/build_demo.py` also produce `demo.html`: the full interface over
+your recorded projects as one static page, which works with no server at all.
+
 ## Using the app
 
 | Section | What's there |
@@ -134,7 +223,7 @@ no API calls.
 |---|---|---|
 | Backend | Python, FastAPI | Simple, fast to build; the whole pipeline is plain Python |
 | Agents | Anthropic Claude, Google Gemini, Groq via one tool-calling interface | Structured outputs everywhere; builder and reviewer can be different companies |
-| Storage | Databricks Delta tables (or MongoDB Atlas, or in-memory) | The decision log is document-shaped and graph-linked; every version is kept |
+| Storage | Databricks Delta tables (or MongoDB Atlas, or in-memory) | Every version of every decision is kept and queryable with SQL |
 | Search | Linkup (Tavily fallback) | Sourced answers with citations for part verification and buy links |
 | Compiler | arduino-cli + ESP32 core | Proof that the firmware builds, not just that it looks right |
 | Frontend | One HTML file, Mermaid for diagrams | No build step; runs anywhere the server runs |
