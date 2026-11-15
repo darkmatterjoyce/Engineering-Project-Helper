@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import threading
+import time
 from collections import deque
 from datetime import datetime, timedelta
 from typing import Any, Iterable
@@ -63,6 +64,9 @@ class Store:
         self.reviews = self.db["reviews"]
         self.precedents = self.db["precedents"]
         self._stage_ctx: dict[str, dict] = {}  # run_id -> {"touched": set, "trigger": dict|None}
+        self.active_runs: set[str] = set()     # runs this server process is building right now
+        self._last_refresh = time.time()
+        self._refreshing = False
         self._lock = threading.Lock()  # serialises version allocation within this process
         self.ensure_indexes()
 
@@ -100,8 +104,24 @@ class Store:
         ev = RunEvent(stage=stage, message=message, level=level).model_dump()  # type: ignore[arg-type]
         self.runs.update_one({"_id": ObjectId(run_id)}, {"$push": {"events": ev}})
 
+    STALE_AFTER = timedelta(minutes=15)
+
+    def _present(self, run: dict | None) -> dict | None:
+        """A run marked 'running' that no server is working on (nothing new for 15 min, and not being built by
+        this process) is shown as interrupted. Worked out on read, never written: another server sharing the
+        database may be building it."""
+        if not run or run.get("status") != "running" or str(run["_id"]) in self.active_runs:
+            return run
+        times = [e.get("at") for e in (run.get("events") or [])[-3:]] + [run.get("created_at")]
+        times = [t.replace(tzinfo=None) for t in times if hasattr(t, "replace")]
+        if times and now().replace(tzinfo=None) - max(times) > self.STALE_AFTER:
+            run = dict(run, status="failed", current_stage=None,
+                       error="Interrupted: this build stopped (the server restarted or lost its connection) "
+                             "before it finished. Start it again.")
+        return run
+
     def get_run(self, run_id: str) -> dict | None:
-        return self.runs.find_one({"_id": ObjectId(run_id)})
+        return self._present(self.runs.find_one({"_id": ObjectId(run_id)}))
 
     def delete_run(self, run_id: str, forget_memory: bool = True) -> dict[str, int]:
         """Delete a project and everything recorded for it (every decision version, outputs, review rounds,
@@ -116,9 +136,50 @@ class Store:
         return n
 
     def list_runs(self, limit: int = 20) -> list[dict]:
-        return list(
-            self.runs.find({}, {"events": 0}).sort("created_at", DESCENDING).limit(limit)
-        )
+        out = []
+        for r in self.runs.find({}).sort("created_at", DESCENDING).limit(limit):
+            r = self._present(r)
+            out.append({k: v for k, v in r.items() if k != "events"})
+        return out
+
+    # ------------------------------------------------------------- several servers, one Databricks
+    def refresh_from_mirror(self, min_interval: float = 30.0, force: bool = False) -> bool:
+        """Re-read the Databricks tables so work saved by another server (e.g. your laptop vs the public
+        site) shows up here. Only when this server is idle: nothing building, nothing waiting to be written."""
+        m = self.mirror
+        if m is None or self._refreshing:
+            return False
+        if not force and (time.time() - self._last_refresh < min_interval):
+            return False
+        if self.active_runs or m.busy():
+            return False
+        self._refreshing = True
+        try:
+            from .databricks_store import COLLECTIONS
+            fresh = {c: m.load(c) for c in COLLECTIONS}   # read everything first: a failure changes nothing
+            with self._lock:
+                if self.active_runs or m.busy():
+                    return False
+                for c, docs in fresh.items():
+                    raw = self.db._db[c]                  # the in-memory copy, not mirrored back
+                    keep = set()
+                    for d in docs:
+                        keep.add(d["_id"])
+                        raw.replace_one({"_id": d["_id"]}, d, upsert=True)
+                    gone = [x["_id"] for x in raw.find({}, {"_id": 1}) if x["_id"] not in keep]
+                    if gone:
+                        raw.delete_many({"_id": {"$in": gone}})
+            return True
+        except Exception:  # noqa: BLE001  keep serving what we have
+            return False
+        finally:
+            self._last_refresh = time.time()
+            self._refreshing = False
+
+    def refresh_in_background(self, min_interval: float = 30.0) -> None:
+        if self.mirror is None or self._refreshing or time.time() - self._last_refresh < min_interval:
+            return
+        threading.Thread(target=self.refresh_from_mirror, args=(min_interval,), daemon=True).start()
 
     # ------------------------------------------------------------- decisions
     # A stage run opens a scope so the store can (a) report which keys the stage (re)decided, so

@@ -318,6 +318,14 @@ def _finalize(svc: Services, ctx: Ctx) -> None:
 
 
 def _guarded(svc: Services, run_id: str, body) -> bool:
+    svc.store.active_runs.add(run_id)
+    try:
+        return _guarded_inner(svc, run_id, body)
+    finally:
+        svc.store.active_runs.discard(run_id)
+
+
+def _guarded_inner(svc: Services, run_id: str, body) -> bool:
     ctx = _ctx(svc, run_id)
     svc.store.update_run(run_id, status="running", error=None)
     try:

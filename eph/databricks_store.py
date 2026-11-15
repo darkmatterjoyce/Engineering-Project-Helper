@@ -135,6 +135,18 @@ class DatabricksMirror:
     def flush(self) -> None:
         with self._lock:
             batch, self._pending = self._pending, {}
+            self._inflight = bool(batch)
+        try:
+            self._flush_batch(batch)
+        finally:
+            self._inflight = False
+
+    def busy(self) -> bool:
+        """True while local writes are queued or being written (don't reload over them)."""
+        with self._lock:
+            return bool(self._pending) or getattr(self, "_inflight", False)
+
+    def _flush_batch(self, batch: dict) -> None:
         failed: dict[str, dict] = {}
         for coll, items in batch.items():
             try:

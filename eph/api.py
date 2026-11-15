@@ -18,12 +18,8 @@ from .pipeline import (apply_verdict, ask, create_run, execute, improve, improve
 WEB = Path(__file__).resolve().parent.parent / "web"
 app = FastAPI(title="Engineering Project Helper")
 svc = make_services()
-# A run can't still be building if the server just started: mark leftovers as interrupted so the GUI
-# doesn't show "Building…" forever (runs are kept across restarts when Databricks/MongoDB is used).
-svc.store.runs.update_many(
-    {"status": "running"},
-    {"$set": {"status": "failed", "current_stage": None,
-              "error": "Interrupted: the server was restarted while this run was building. Start it again."}})
+# Runs left 'running' by a restart are shown as interrupted when read (Store._present), never rewritten here:
+# another server sharing the same Databricks tables may be building them right now.
 
 
 class NewRun(BaseModel):
@@ -65,9 +61,42 @@ def index():
     return FileResponse(WEB / "index.html")
 
 
+# ---- public-hosting safety (Render etc.): anyone with the link can use the site
+import os as _os
+from datetime import timedelta as _td
+
+DAILY_LIMIT = int(_os.getenv("EPH_DAILY_BUILD_LIMIT", "0") or 0)    # 0 = no limit (local use)
+ALLOW_DELETE = (_os.getenv("EPH_ALLOW_DELETE", "1") or "1") != "0"
+
+
+def _check_build_quota() -> None:
+    """Builds and improvements spend API credits: cap them per 24 h on a public deployment."""
+    if DAILY_LIMIT <= 0:
+        return
+    from .schema import now
+    since = (now() - _td(days=1)).replace(tzinfo=None)
+
+    def recent(t) -> bool:
+        return hasattr(t, "replace") and t.replace(tzinfo=None) >= since
+
+    used = 0
+    for r in svc.store.runs.find({}, {"created_at": 1, "improvements": 1}):
+        used += recent(r.get("created_at"))
+        used += sum(1 for i in (r.get("improvements") or []) if isinstance(i, dict) and recent(i.get("at")))
+    if used >= DAILY_LIMIT:
+        raise HTTPException(429, f"This public demo allows {DAILY_LIMIT} builds a day and they've been used. "
+                                 "Explore the finished projects below, or clone the repo to run your own.")
+
+
+def _check_delete() -> None:
+    if not ALLOW_DELETE:
+        raise HTTPException(403, "Deleting is turned off on this public demo.")
+
+
 @app.get("/api/health")
 def health():
-    return {"providers": svc.providers, "toolchain": toolchain_status(svc.settings)}
+    return {"providers": svc.providers, "toolchain": toolchain_status(svc.settings),
+            "features": {"delete": ALLOW_DELETE, "daily_build_limit": DAILY_LIMIT}}
 
 
 @app.get("/api/storage")
@@ -137,6 +166,7 @@ def clarify(body: Prompt):
 
 @app.post("/api/runs")
 def new_run(body: NewRun):
+    _check_build_quota()
     try:
         run_id = create_run(svc, body.prompt, body.clarifications, body.engineer_model, body.bar_raiser_model)
     except (ValueError, LLMError) as e:
@@ -147,6 +177,7 @@ def new_run(body: NewRun):
 
 @app.get("/api/runs")
 def list_runs():
+    svc.store.refresh_in_background()   # pick up projects saved by another server (laptop / public site)
     return clean(svc.store.list_runs())
 
 
@@ -178,6 +209,7 @@ def _redraw_breadboard(decisions: list[dict], artifacts: dict) -> None:
 
 @app.get("/api/runs/{run_id}")
 def get_run(run_id: str):
+    svc.store.refresh_in_background()
     run = _run_or_404(run_id)
     decisions, artifacts = svc.store.active(run_id), svc.store.latest_artifacts(run_id)
     _redraw_breadboard(decisions, artifacts)
@@ -192,6 +224,7 @@ def get_run(run_id: str):
 @app.delete("/api/runs/{run_id}")
 def delete_run(run_id: str, forget_memory: bool = True):
     """Delete a past project. A project that is still building can't be deleted (stop the server first)."""
+    _check_delete()
     run = _run_or_404(run_id)
     if run["status"] == "running":
         raise HTTPException(409, "this project is still building; wait for it to finish")
@@ -222,6 +255,7 @@ def improve_qs(run_id: str, body: Feedback):
 @app.post("/api/runs/{run_id}/improve")
 def improve_run(run_id: str, body: Feedback):
     """'Improve project': resume this run with free-text feedback (Bar Raiser records it first)."""
+    _check_build_quota()
     run = _run_or_404(run_id)
     if run["status"] == "running":
         raise HTTPException(409, "run is busy")
@@ -269,6 +303,7 @@ def list_precedents():
 
 @app.delete("/api/precedents/{precedent_id}")
 def forget_precedent(precedent_id: str):
+    _check_delete()
     from bson import ObjectId
 
     try:
