@@ -1,9 +1,0 @@
-fastapi>=0.110
-uvicorn>=0.29
-pymongo>=4.7
-anthropic>=0.40
-httpx>=0.27
-pydantic>=2.6
-mongomock>=4.1   # in-memory engine (fallback, and the query engine for the Databricks backend)
-databricks-sql-connector>=3.0   # Databricks Delta tables as the database
-pytest>=8
