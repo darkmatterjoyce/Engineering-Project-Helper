@@ -1,0 +1,4259 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Engineering Project Helper</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #131315;
+        --panel: #202023;
+        --panel2: #131315;
+        --line: #343439;
+        --text: #f2f2f4;
+        --muted: #a1a1a9;
+        --accent: #3a87e5;
+        --link: #8bbaff;
+        --ok: #85bc95;
+        --warn: #dfb566;
+        --err: #ef9690;
+        --req: #7850a5;
+        --parts: #2167b1;
+        --wiring: #85bc95;
+        --procurement: #247b7e;
+        --firmware: #dfb566;
+        --diagram: #a34180;
+        --guide: #a1a1a9;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      html {
+        scroll-padding-top: 30px;
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14px/1.6 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+      button,
+      a,
+      input,
+      select,
+      summary {
+        touch-action: manipulation;
+      }
+      button {
+        cursor: pointer;
+        background: var(--accent);
+        color: #202023;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        padding: 11px 22px;
+        font-size: 13px;
+        font-weight: 500;
+        transition:
+          background 0.18s,
+          box-shadow 0.18s,
+          transform 0.18s;
+      }
+      button:hover:not(:disabled) {
+        background: #0077ed;
+        box-shadow: 0 4px 14px #0071e31c;
+      }
+      button:active:not(:disabled) {
+        transform: scale(0.98);
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      :focus-visible {
+        outline: 3px solid #0071e366;
+        outline-offset: 4px;
+      }
+      a {
+        color: var(--link);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .ghost {
+        background: transparent;
+        color: var(--text);
+        border-color: var(--line);
+      }
+      .ghost:hover:not(:disabled) {
+        background: #303035;
+        box-shadow: none;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      code,
+      .mono {
+        font: 12px/1.6 var(--mono);
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        overflow-wrap: anywhere;
+      }
+      h2 {
+        font-size: 20px;
+        line-height: 1.3;
+        letter-spacing: -0.5px;
+        margin: 0 0 14px;
+        font-weight: 600;
+      }
+      h3 {
+        font-weight: 600;
+      }
+      p {
+        margin: 0 0 14px;
+      }
+      .eyebrow {
+        font-size: 10px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: var(--muted);
+      }
+      .site-header {
+        height: 70px;
+        border-bottom: 1px solid #34343999;
+        background: #171719ed;
+        backdrop-filter: blur(20px);
+        display: flex;
+        align-items: center;
+        padding: 0 max(28px, calc((100vw - 1240px) / 2));
+        gap: 24px;
+        position: relative;
+        z-index: 20;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        white-space: nowrap;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.6px;
+        color: var(--text);
+      }
+      .brand:hover {
+        text-decoration: none;
+      }
+      .brand-mark {
+        width: 29px;
+        height: 29px;
+        background: var(--text);
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        color: #202023;
+      }
+      .brand-mark svg {
+        width: 19px;
+        height: 19px;
+      }
+      .brand-sub {
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--muted);
+        border-left: 1px solid var(--line);
+        padding-left: 20px;
+      }
+      .header-actions {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 22px;
+      }
+      .text-button {
+        border: 0;
+        background: none;
+        color: var(--link);
+        padding: 7px 0;
+        border-radius: 4px;
+      }
+      .text-button:hover:not(:disabled) {
+        background: none;
+        box-shadow: none;
+      }
+      .system-status {
+        position: relative;
+      }
+      .system-status summary {
+        cursor: pointer;
+        list-style: none;
+        font-size: 12px;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .system-status summary:before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        background: #8e8e93;
+        border-radius: 50%;
+      }
+      .system-status summary::-webkit-details-marker {
+        display: none;
+      }
+      .chips {
+        position: absolute;
+        top: 32px;
+        right: 0;
+        min-width: 240px;
+        background: #202023;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        box-shadow: 0 12px 40px #00000012;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+      .chip {
+        font-size: 11px;
+        padding: 4px 9px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        color: var(--muted);
+      }
+      .chip.ok {
+        color: var(--ok);
+      }
+      .chip.warn {
+        color: var(--warn);
+      }
+      main {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 0 28px 72px;
+      }
+      .intro {
+        padding: 76px 0 58px;
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 60px;
+        align-items: center;
+      }
+      .intro h1 {
+        font-size: clamp(46px, 5.4vw, 72px);
+        font-weight: 600;
+        letter-spacing: -3.8px;
+        line-height: 1.05;
+        margin: 17px 0 23px;
+      }
+      .intro h1 span {
+        color: #92929b;
+      }
+      .intro p {
+        font-size: 19px;
+        line-height: 1.55;
+        letter-spacing: -0.35px;
+        color: var(--muted);
+        max-width: 460px;
+      }
+      .intro .intro-note {
+        font-size: 12px;
+        margin-top: 26px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .intro-note:before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border: 1.5px solid var(--muted);
+        border-radius: 50%;
+      }
+      .object-stage {
+        position: relative;
+        min-height: 315px;
+        display: grid;
+        place-items: center;
+      }
+      .object-stage:before {
+        content: "";
+        position: absolute;
+        width: 280px;
+        height: 200px;
+        border-radius: 50%;
+        background: #e3e6eb;
+        filter: blur(40px);
+        top: 95px;
+      }
+      .object-stage svg {
+        position: relative;
+        width: 100%;
+        max-width: 425px;
+        filter: drop-shadow(0 24px 18px #2d394524);
+        transform: rotate(-9deg);
+      }
+      .object-label {
+        position: absolute;
+        right: 4px;
+        bottom: 5px;
+        font-size: 10px;
+        color: #92929b;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .composer {
+        background: #202023;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 25px 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 32px #1d1d1f04;
+      }
+      .composer > summary {
+        list-style: none;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+        font-size: 15px;
+        letter-spacing: -0.25px;
+      }
+      .composer > summary::-webkit-details-marker {
+        display: none;
+      }
+      .composer > summary:after {
+        content: "+";
+        font-size: 22px;
+        color: var(--muted);
+        font-weight: 300;
+      }
+      .composer[open] > summary:after {
+        content: "−";
+      }
+      .composer-inner {
+        padding-top: 24px;
+      }
+      .modes {
+        display: inline-flex;
+        padding: 4px;
+        background: var(--panel2);
+        border-radius: 10px;
+        margin-bottom: 20px;
+        gap: 3px;
+      }
+      .mode {
+        padding: 7px 16px;
+        color: var(--muted);
+        font-size: 12px;
+        background: none;
+        border: 0;
+        border-radius: 7px;
+      }
+      .mode.active {
+        background: #202023;
+        color: var(--text);
+        box-shadow: 0 1px 4px #00000010;
+      }
+      .mode:hover:not(:disabled) {
+        background: #202023;
+        box-shadow: none;
+      }
+      #f {
+        display: block;
+      }
+      .prompt-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 10px;
+      }
+      input[type="text"],
+      textarea {
+        width: 100%;
+        min-width: 0;
+        background: var(--panel2);
+        color: var(--text);
+        border: 1px solid #343439;
+        border-radius: 12px;
+        padding: 13px 16px;
+        outline: none;
+      }
+      input[type="text"]:focus,
+      textarea:focus,
+      select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px #0071e315;
+      }
+      input::placeholder,
+      textarea::placeholder {
+        color: #92929b;
+      }
+      #prompt {
+        font-size: 17px;
+        padding: 18px 20px;
+        border-radius: 14px;
+        letter-spacing: -0.3px;
+      }
+      .model-row {
+        display: flex;
+        align-items: flex-end;
+        gap: 18px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+      }
+      .model-row label {
+        font-size: 11px;
+        color: var(--muted);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      .model-row select {
+        width: 225px;
+        max-width: 100%;
+        padding: 9px 27px 9px 11px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: #202023;
+        color: var(--text);
+        font-size: 12px;
+      }
+      .model-row button {
+        margin-left: auto;
+        min-height: 42px;
+        padding: 10px 27px;
+      }
+      .model-hint {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 13px;
+        min-height: 18px;
+      }
+      .examples {
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin: 18px 0 0;
+        padding-top: 17px;
+        border-top: 1px solid #303034;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .examples a {
+        cursor: pointer;
+        background: #131315;
+        border: 1px solid #303034;
+        border-radius: 999px;
+        padding: 5px 11px;
+        font-size: 11px;
+        color: var(--muted);
+        max-width: 100%;
+      }
+      .examples a:hover {
+        color: var(--link);
+        border-color: #3a5470;
+        text-decoration: none;
+      }
+      .qa {
+        margin-top: 20px;
+        padding: 22px;
+        border-radius: 16px;
+        background: #202d3e;
+        border: 1px solid #3a5470;
+      }
+      .qa > b {
+        font-size: 17px;
+        letter-spacing: -0.4px;
+      }
+      .qa label {
+        display: block;
+        margin: 14px 0 7px;
+        font-size: 13px;
+      }
+      .qa .row {
+        display: flex;
+        gap: 9px;
+        margin-top: 18px;
+        flex-wrap: wrap;
+      }
+      .imp-step {
+        padding: 18px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .imp-step.disabled {
+        opacity: 0.5;
+      }
+      .imp-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+        max-height: 250px;
+        overflow: auto;
+      }
+      .imp-card {
+        background: #202023;
+        color: var(--text);
+        text-align: left;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px;
+        cursor: pointer;
+      }
+      .imp-card:hover:not(:disabled),
+      .run-item:hover:not(:disabled) {
+        background: #202d3e;
+        box-shadow: none;
+      }
+      .imp-card.active {
+        border-color: var(--accent);
+        background: #202d3e;
+      }
+      .imp-card .p {
+        font-weight: 500;
+      }
+      .imp-card .s {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 5px;
+      }
+      #imp-text {
+        margin: 14px 0;
+        resize: vertical;
+      }
+      #imp-go {
+        margin-right: 10px;
+      }
+      .project-library {
+        margin-bottom: 28px;
+      }
+      .project-library > summary {
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 12px;
+        padding: 8px 4px;
+      }
+      .project-library > summary:after {
+        content: "⌄";
+        font-size: 15px;
+      }
+      .project-library[open] > summary:after {
+        content: "⌃";
+      }
+      #runs {
+        display: flex;
+        overflow: auto;
+        gap: 12px;
+        padding: 10px 2px 6px;
+      }
+      .run-item {
+        color: var(--text);
+        text-align: left;
+        cursor: pointer;
+        background: #202023;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 13px 16px;
+        flex: 0 0 260px;
+        max-width: 100%;
+      }
+      .run-item.active {
+        border-color: #3a5470;
+        background: #202d3e;
+      }
+      .run-card {
+        position: relative;
+        flex: 0 0 260px;
+        max-width: 100%;
+      }
+      .run-card .run-item {
+        width: 100%;
+        padding-right: 38px;
+      }
+      .run-del {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 26px;
+        height: 26px;
+        padding: 0;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1;
+        cursor: pointer;
+        opacity: 0.55;
+      }
+      .run-card:hover .run-del,
+      .run-del:focus-visible {
+        opacity: 1;
+      }
+      .run-del:hover {
+        color: var(--err);
+        border-color: var(--line);
+        background: #2a2a2e;
+      }
+      .run-confirm {
+        position: absolute;
+        inset: 0;
+        border-radius: 14px;
+        border: 1px solid var(--err);
+        background: #241c1e;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 12px;
+        font-size: 12px;
+        color: var(--text);
+      }
+      .run-confirm span {
+        flex: 1;
+      }
+      .run-confirm button {
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .run-confirm .yes {
+        background: var(--err);
+        color: #fff;
+        border: 0;
+      }
+      .run-confirm .no {
+        background: transparent;
+        color: var(--muted);
+        border: 1px solid var(--line);
+      }
+      .run-item:hover {
+        border-color: #3a5470;
+      }
+      .run-item .p {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .run-item .s {
+        color: var(--muted);
+        font-size: 10px;
+        margin-top: 5px;
+      }
+      .has-project .intro {
+        display: none;
+      }
+      .has-project main {
+        padding-top: 26px;
+      }
+      .has-project .composer {
+        padding: 18px 24px;
+        border-radius: 16px;
+        margin-bottom: 10px;
+      }
+      .has-project .project-library {
+        margin-bottom: 30px;
+      }
+      .landing-footer {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 38px;
+        padding: 32px 5px 0;
+      }
+      .landing-footer span {
+        font: 11px var(--mono);
+        color: #92929b;
+      }
+      .landing-footer h2 {
+        font-size: 17px;
+        margin: 8px 0;
+        letter-spacing: -0.3px;
+      }
+      .landing-footer p {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.7;
+      }
+      .workspace-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 28px;
+        margin: 0 0 29px;
+      }
+      .workspace-header h1 {
+        font-size: clamp(30px, 3vw, 43px);
+        font-weight: 600;
+        line-height: 1.12;
+        letter-spacing: -1.7px;
+        margin: 10px 0 12px;
+      }
+      .workspace-header p {
+        max-width: 650px;
+        font-size: 14px;
+        color: var(--muted);
+        margin: 0;
+      }
+      .project-state {
+        font-size: 11px;
+        padding: 5px 11px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        background: #202023;
+        border: 1px solid var(--line);
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .project-state:before {
+        content: "";
+        width: 5px;
+        height: 5px;
+        background: currentColor;
+        border-radius: 50%;
+      }
+      .project-state.warn {
+        color: var(--warn);
+        background: #352c1e;
+        border-color: #66532d;
+      }
+      .project-state.ok {
+        color: var(--ok);
+        background: #203329;
+        border-color: #355d42;
+      }
+      .project-state.err {
+        color: var(--err);
+        background: #3d2525;
+      }
+      .project-state.running:before {
+        animation: pulse 1.5s infinite;
+      }
+      .project-metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        margin-bottom: 31px;
+        border-top: 1px solid #343439;
+        border-bottom: 1px solid #343439;
+        padding: 21px 0;
+        gap: 20px;
+      }
+      .metric {
+        padding: 0 24px;
+        border-right: 1px solid #343439;
+      }
+      .metric:first-child {
+        padding-left: 0;
+      }
+      .metric:last-child {
+        border: 0;
+      }
+      .metric span {
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .metric strong {
+        display: block;
+        font-size: 24px;
+        letter-spacing: -0.9px;
+        font-weight: 500;
+        margin: 4px 0 1px;
+      }
+      .metric small {
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .workspace-layout {
+        display: grid;
+        grid-template-columns: 174px minmax(0, 1fr);
+        gap: 28px;
+        align-items: start;
+      }
+      .tabs {
+        position: sticky;
+        top: 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 4px 0;
+      }
+      .tabs .nav-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        color: #92929b;
+        letter-spacing: 1.2px;
+        padding: 0 14px;
+        margin-bottom: 12px;
+      }
+      .tab {
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        padding: 11px 13px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--muted);
+      }
+      .tab svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        stroke-width: 1.6;
+      }
+      .tab:hover:not(:disabled) {
+        background: #303035;
+        color: var(--text);
+        box-shadow: none;
+      }
+      .tab.active {
+        background: #202023;
+        color: var(--text);
+        box-shadow: 0 2px 8px #00000005;
+        font-weight: 500;
+      }
+      .tab-count {
+        margin-left: auto;
+        border-radius: 99px;
+        background: #463820;
+        color: #dfb566;
+        font-size: 10px;
+        padding: 0 5px;
+        min-width: 17px;
+        text-align: center;
+      }
+      .workspace-main {
+        min-width: 0;
+      }
+      .section-heading {
+        margin: 0 0 24px;
+      }
+      .section-heading h2 {
+        font-size: 24px;
+        letter-spacing: -0.7px;
+        margin-bottom: 5px;
+      }
+      .section-heading p {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid #343439;
+        border-radius: 20px;
+        padding: 27px 28px;
+        margin-bottom: 18px;
+        overflow-x: auto;
+        box-shadow: 0 8px 32px #1d1d1f04;
+      }
+      .panel h2 {
+        font-size: 17px;
+        letter-spacing: -0.4px;
+      }
+      .panel p {
+        line-height: 1.7;
+        font-size: 13px;
+      }
+      .grid2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+      .grid2 > .panel {
+        min-width: 0;
+      }
+      .grid2 p {
+        font-size: 12px;
+      }
+      .panel.gaps {
+        border-color: #66532d;
+      }
+      .panel.clean {
+        border-color: #355d42;
+      }
+      .delivery {
+        padding: 20px 24px;
+      }
+      .delivery h2 {
+        font-size: 13px;
+        margin: 0;
+      }
+      .delivery h2 .goto {
+        font-size: 11px;
+        font-weight: 400;
+        display: inline;
+        margin-left: 8px;
+      }
+      .stepper {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-top: 16px;
+      }
+      .step {
+        padding: 9px 10px;
+        border-radius: 9px;
+        background: #27272c;
+        font-size: 10px;
+        color: var(--muted);
+        border: 1px solid transparent;
+      }
+      .step b {
+        display: block;
+        font-size: 11px;
+        color: var(--text);
+        font-weight: 500;
+      }
+      .step.done b:after {
+        content: " ✓";
+        color: var(--ok);
+      }
+      .step.running {
+        border-color: #3a5470;
+        background: #202d3e;
+      }
+      .step.running b:after {
+        content: " ·";
+        color: var(--accent);
+      }
+      .step.failed {
+        border-color: #684040;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        text-align: left;
+      }
+      th {
+        padding: 12px 10px;
+        border-bottom: 1px solid var(--line);
+        font-size: 9px;
+        font-weight: 500;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        white-space: nowrap;
+      }
+      td {
+        padding: 14px 10px;
+        vertical-align: top;
+        border-bottom: 1px solid #303034;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+      }
+      td:first-child,
+      th:first-child {
+        padding-left: 0;
+      }
+      td:last-child,
+      th:last-child {
+        padding-right: 0;
+      }
+      tr:last-child > td {
+        border-bottom: 0;
+      }
+      tr.click {
+        cursor: pointer;
+      }
+      tr.click:hover td {
+        background: #242428;
+      }
+      .badge,
+      .verdict {
+        display: inline-block;
+        font-size: 10px;
+        line-height: 1.6;
+        padding: 2px 7px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #27272c;
+        color: var(--muted);
+        font-weight: 400;
+        vertical-align: middle;
+        white-space: normal;
+      }
+      .badge.ok,
+      .v-approve {
+        color: var(--ok);
+        background: #203329;
+        border-color: #355d42;
+      }
+      .badge.warn,
+      .v-medium {
+        color: var(--warn);
+        background: #352c1e;
+        border-color: #66532d;
+      }
+      .badge.err,
+      .v-high {
+        color: var(--err);
+        background: #3d2525;
+        border-color: #684040;
+      }
+      .v-low {
+        color: var(--muted);
+      }
+      a.buy {
+        padding: 5px 11px;
+        border-radius: 999px;
+        background: #1d3048;
+        color: var(--link);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .crit-row {
+        display: flex;
+        gap: 10px;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 12px;
+      }
+      .crit-row .tick {
+        color: var(--ok);
+      }
+      .crit-row b {
+        font-weight: 500;
+      }
+      .crit-met {
+        color: var(--ok);
+      }
+      .crit-partial,
+      .crit-unverified {
+        color: var(--warn);
+      }
+      .crit-not_met {
+        color: var(--err);
+      }
+      .supp-h,
+      h3.sec {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1.4px;
+        color: var(--muted);
+        margin: 26px 0 12px;
+      }
+      .guide {
+        padding: 30px;
+      }
+      .guide h2 {
+        font-size: 20px;
+      }
+      .guide .lead p {
+        font-size: 15px;
+        line-height: 1.8;
+        color: #b8b8c0;
+      }
+      .guide h3 {
+        font-size: 13px;
+        font-weight: 600;
+        margin: 29px 0 17px;
+      }
+      .guide .need {
+        padding: 15px 18px;
+        background: #131315;
+        border-radius: 12px;
+        margin: 20px 0;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .guide .need b {
+        color: var(--text);
+      }
+      .guide ol.steps {
+        list-style: none;
+        counter-reset: s;
+        padding: 0;
+        margin: 0;
+      }
+      .guide ol.steps li {
+        counter-increment: s;
+        position: relative;
+        padding: 0 0 24px 43px;
+      }
+      .guide ol.steps li:before {
+        content: counter(s, decimal-leading-zero);
+        position: absolute;
+        left: 0;
+        top: 0;
+        font-size: 13px;
+        color: #92929b;
+        font-weight: 500;
+      }
+      .guide ol.steps li b {
+        font-size: 14px;
+        font-weight: 500;
+        display: block;
+        margin-bottom: 5px;
+      }
+      .guide ol.steps li p {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .guide ul {
+        margin: 0;
+        padding-left: 17px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .guide ul li {
+        margin: 9px 0;
+      }
+      .checklist label {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid #303034;
+        cursor: pointer;
+      }
+      .checklist input {
+        accent-color: var(--accent);
+        margin-top: 4px;
+      }
+      .checklist .mono {
+        font-size: 11px;
+      }
+      .checklist label.done span {
+        color: #92929b;
+        text-decoration: line-through;
+      }
+      .goto {
+        cursor: pointer;
+        color: var(--link);
+      }
+      .rebuild-form {
+        display: flex;
+        gap: 9px;
+        margin-top: 14px;
+      }
+      .rebuild-form input {
+        min-width: 0;
+        flex: 1;
+        font-size: 12px;
+      }
+      .rebuild-form button {
+        flex-shrink: 0;
+        font-size: 12px;
+        padding: 9px 15px;
+      }
+      .verdict-form {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .verdict-form .rebuild-form {
+        width: 100%;
+        margin-top: 5px;
+      }
+      .vbtn {
+        background: #131315;
+        border: 1px solid #343439;
+        color: var(--text);
+        padding: 8px 13px;
+        font-size: 11px;
+      }
+      .vbtn:hover:not(:disabled) {
+        background: #303035;
+        box-shadow: none;
+      }
+      .vbtn.sel {
+        outline: 2px solid var(--accent);
+      }
+      .big-verdict {
+        font-size: 16px;
+      }
+      .counts {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 22px;
+      }
+      .counts div {
+        background: #27272c;
+        border-radius: 12px;
+        padding: 13px 8px;
+        text-align: center;
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .counts b {
+        display: block;
+        font-size: 24px;
+        font-weight: 500;
+        color: var(--text);
+        letter-spacing: -1px;
+      }
+      .pills {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+      .pill {
+        padding: 7px 12px;
+        border: 1px solid var(--line);
+        border-radius: 99px;
+        cursor: pointer;
+        color: var(--muted);
+        font-size: 11px;
+        background: #202023;
+      }
+      .pill.active {
+        color: var(--link);
+        border-color: #3a5470;
+        background: #202d3e;
+      }
+      .detail td {
+        background: #242428;
+        color: var(--muted);
+        padding: 20px;
+      }
+      .detail .k {
+        color: var(--text);
+        font-weight: 500;
+      }
+      .detail td > div {
+        margin-bottom: 10px;
+      }
+      .deps {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      .dep {
+        font: 9px var(--mono);
+        border: 1px solid var(--line);
+        padding: 2px 5px;
+        border-radius: 4px;
+        cursor: pointer;
+        max-width: 170px;
+        overflow-wrap: anywhere;
+      }
+      .hist {
+        font: 11px/1.8 var(--mono);
+      }
+      .conf {
+        display: inline-block;
+        width: 40px;
+        height: 4px;
+        background: #343439;
+        border-radius: 9px;
+        overflow: hidden;
+      }
+      .conf i {
+        display: block;
+        height: 100%;
+      }
+      .events {
+        font: 11px/1.9 var(--mono);
+        max-height: 260px;
+        overflow: auto;
+      }
+      .events > div {
+        padding: 3px 0;
+      }
+      .warn,
+      .events .warn {
+        color: var(--warn);
+      }
+      .error,
+      .events .error {
+        color: var(--err);
+      }
+      .stage-requirements {
+        color: var(--req);
+      }
+      .stage-parts {
+        color: var(--parts);
+      }
+      .stage-wiring {
+        color: var(--wiring);
+      }
+      .stage-procurement {
+        color: var(--procurement);
+      }
+      .stage-firmware {
+        color: var(--firmware);
+      }
+      .stage-diagram {
+        color: var(--diagram);
+      }
+      .stage-guide {
+        color: var(--guide);
+      }
+      .stage-review {
+        color: #a65d28;
+      }
+      .stage-rebuild,
+      .stage-engineer,
+      .stage-user {
+        color: var(--link);
+      }
+      .stage-delivery {
+        color: var(--ok);
+      }
+      .dep-legend {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-size: 10px;
+        color: var(--muted);
+        margin-bottom: 15px;
+      }
+      .dep-legend i {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 2px;
+        margin-right: 5px;
+      }
+      .mermaid-wrap {
+        overflow: auto;
+      }
+      .mermaid-wrap svg {
+        max-width: 100%;
+        height: auto;
+      }
+      .mermaid-wrap pre {
+        background: transparent;
+        color: var(--text);
+        border: 0;
+        max-height: none;
+      }
+      .mermaid-wrap svg .node {
+        filter: none;
+      }
+      .mermaid-wrap svg .edgeLabel,
+      .mermaid-wrap svg .edgeLabel rect,
+      .mermaid-wrap svg .labelBkg {
+        background: transparent !important;
+      }
+      .bb-wrap {
+        overflow: auto;
+        padding: 12px 0;
+      }
+      .bb-wrap svg {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: auto;
+      }
+      .bb-wrap .bb-bg {
+        fill: #202023;
+      }
+      .bb-wrap .bb-board {
+        fill: #f2f0e9;
+        stroke: #d3d0c6;
+      }
+      .bb-wrap .bb-ink {
+        fill: var(--text);
+      }
+      .bb-wrap .bb-ink-muted {
+        fill: var(--muted);
+      }
+      .bb-wrap .bb-wire-edge {
+        stroke: #202023;
+      }
+      .fw-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+        gap: 20px;
+        align-items: start;
+      }
+      .code-view,
+      pre {
+        background: #1c1c1e;
+        color: #e9e9ef;
+        border: 1px solid #303036;
+        border-radius: 14px;
+        font: 11.5px/1.8 var(--mono);
+        overflow: auto;
+        max-height: 720px;
+        margin: 0;
+        padding: 16px;
+      }
+      .code-view {
+        padding: 14px 0;
+        user-select: none;
+        cursor: pointer;
+      }
+      .code-view .ln {
+        display: flex;
+        white-space: pre;
+        padding-right: 16px;
+        border-left: 3px solid transparent;
+      }
+      .code-view .ln:hover {
+        background: #ffffff09;
+      }
+      .code-view .ln.b1 {
+        background: #ffffff02;
+      }
+      .code-view .ln.st {
+        border-left-color: #45454a;
+      }
+      .code-view .ln.sel {
+        background: #0071e333 !important;
+        border-left-color: #64a9fb;
+      }
+      .code-view .ln.blk {
+        background: #0071e310;
+      }
+      .code-view .no {
+        width: 43px;
+        flex: none;
+        text-align: right;
+        padding-right: 13px;
+        color: #777780;
+      }
+      .code-view .ln.sel .no {
+        color: #8bc0ff;
+      }
+      .tk-c {
+        color: #8c8c98;
+        font-style: italic;
+      }
+      .tk-s {
+        color: #a8cc8c;
+      }
+      .tk-k {
+        color: #d5a1df;
+      }
+      .tk-n {
+        color: #eab77c;
+      }
+      .tk-p {
+        color: #e6cf8c;
+      }
+      .tk-f {
+        color: #8cbedb;
+      }
+      .side {
+        position: sticky;
+        top: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        min-width: 0;
+      }
+      .explain {
+        padding: 18px;
+        background: #131315;
+        border: 1px solid #343439;
+        border-radius: 14px;
+        max-height: 400px;
+        overflow: auto;
+        font-size: 12px;
+      }
+      .explain h3 {
+        font-size: 14px;
+        margin: 0 0 10px;
+      }
+      .explain .step-item,
+      .explain .blk-item {
+        border-left: 2px solid var(--accent);
+        padding: 4px 10px;
+        margin: 10px 0;
+        cursor: pointer;
+      }
+      .explain .chip-btn {
+        display: inline-block;
+        margin: 3px;
+        padding: 3px 8px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        cursor: pointer;
+        font: 10px var(--mono);
+        background: white;
+      }
+      .explain .deep {
+        padding: 12px;
+        background: #202023;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        margin-top: 12px;
+      }
+      .explain button {
+        padding: 7px 12px;
+        font-size: 11px;
+        margin-top: 9px;
+      }
+      .mermaid-wrap.flow {
+        padding: 12px;
+        background: #242428;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+      }
+      .flow {
+        font-size: 12px;
+        max-height: 550px;
+        overflow: auto;
+      }
+      .flow div {
+        margin: 5px 0;
+      }
+      .flow .lbl {
+        display: block;
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 10px;
+      }
+      .flow svg .node {
+        cursor: pointer;
+      }
+      .flow svg .node rect {
+        fill: #263344 !important;
+        stroke: #557497 !important;
+        stroke-width: 1px !important;
+      }
+      .flow svg .node polygon {
+        fill: #3c3326 !important;
+        stroke: #8c784e !important;
+      }
+      .flow svg .node text,
+      .flow svg .node .nodeLabel {
+        fill: #d4e2f4 !important;
+        color: #d4e2f4 !important;
+      }
+      .flow svg .node.hl-node rect,
+      .flow svg .node.hl-node polygon {
+        fill: #2c4b70 !important;
+        stroke: var(--accent) !important;
+        stroke-width: 2px !important;
+      }
+      .flow svg .flowchart-link {
+        stroke: #a1a1aa !important;
+      }
+      .mermaid-wrap.dep svg .cluster rect {
+        fill: #131315 !important;
+        stroke: #343439 !important;
+      }
+      .empty {
+        padding: 48px 24px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .hl td {
+        outline: 1px solid var(--accent);
+      }
+      .footer {
+        padding-top: 30px;
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        border-top: 1px solid #343439;
+        margin-top: 42px;
+        font-size: 10px;
+        color: #92929b;
+      }
+      .footer span:last-child {
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      summary {
+        cursor: pointer;
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.25;
+        }
+      }
+      @media (max-width: 1100px) {
+        .fw-grid {
+          grid-template-columns: 1fr;
+        }
+        .side {
+          position: static;
+        }
+        .workspace-layout {
+          grid-template-columns: 150px minmax(0, 1fr);
+          gap: 20px;
+        }
+        .panel {
+          padding: 22px;
+        }
+        .grid2 {
+          grid-template-columns: 1fr;
+        }
+        .intro {
+          gap: 25px;
+        }
+        .brand-sub {
+          display: none;
+        }
+      }
+      @media (max-width: 760px) {
+        .site-header {
+          height: 60px;
+          padding: 0 20px;
+          gap: 10px;
+        }
+        .brand {
+          font-size: 14px;
+        }
+        .header-actions {
+          gap: 15px;
+        }
+        .system-status summary {
+          font-size: 11px;
+        }
+        main {
+          padding: 0 20px 40px;
+        }
+        .intro {
+          padding: 45px 0 30px;
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        .intro h1 {
+          font-size: 52px;
+          letter-spacing: -2.8px;
+        }
+        .intro p {
+          font-size: 17px;
+          max-width: 420px;
+        }
+        .intro .intro-note {
+          margin-top: 18px;
+        }
+        .object-stage {
+          min-height: 200px;
+          max-width: 330px;
+          margin: auto;
+          width: 100%;
+        }
+        .object-stage svg {
+          max-height: 200px;
+        }
+        .object-stage:before {
+          width: 180px;
+          height: 100px;
+          top: 70px;
+        }
+        .object-label {
+          bottom: 0;
+          right: 0;
+        }
+        .composer {
+          padding: 22px;
+          border-radius: 20px;
+        }
+        .model-row {
+          gap: 12px;
+        }
+        .model-row label {
+          flex: 1;
+          min-width: 130px;
+        }
+        .model-row select {
+          width: 100%;
+          min-width: 0;
+        }
+        .model-row button {
+          width: 100%;
+          margin-top: 4px;
+        }
+        #prompt {
+          font-size: 15px;
+        }
+        .examples {
+          gap: 7px;
+        }
+        .examples a {
+          font-size: 10px;
+        }
+        .landing-footer {
+          gap: 22px;
+          grid-template-columns: 1fr;
+          padding-top: 20px;
+        }
+        .landing-footer p {
+          margin: 0;
+        }
+        .workspace-header {
+          display: block;
+          margin-bottom: 22px;
+        }
+        .workspace-header h1 {
+          font-size: 34px;
+          letter-spacing: -1.3px;
+        }
+        .workspace-header .project-state {
+          margin-top: 16px;
+        }
+        .project-metrics {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 20px;
+          padding: 18px 0;
+        }
+        .metric {
+          padding-left: 0;
+        }
+        .metric:nth-child(2) {
+          border: 0;
+        }
+        .metric strong {
+          font-size: 22px;
+        }
+        .workspace-layout {
+          display: block;
+        }
+        .tabs {
+          position: relative;
+          top: 0;
+          flex-direction: row;
+          overflow: auto;
+          gap: 4px;
+          padding: 0 0 14px;
+          margin-bottom: 12px;
+          scrollbar-width: thin;
+        }
+        .tabs .nav-label {
+          display: none;
+        }
+        .tab {
+          white-space: nowrap;
+          flex-shrink: 0;
+          padding: 10px 12px;
+          font-size: 11px;
+        }
+        .tab svg {
+          width: 14px;
+          height: 14px;
+        }
+        .panel {
+          padding: 21px 18px;
+          border-radius: 16px;
+        }
+        .panel table {
+          min-width: 550px;
+        }
+        .stepper {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .guide .grid2 {
+          gap: 0;
+        }
+        .counts {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .rebuild-form {
+          flex-wrap: wrap;
+        }
+        .rebuild-form input {
+          flex-basis: 100%;
+        }
+        .rebuild-form button {
+          width: 100%;
+        }
+        .verdict-form .vbtn {
+          flex: 1;
+          min-width: 110px;
+        }
+        .delivery h2 .goto {
+          display: block;
+          margin: 8px 0 0;
+        }
+        .footer {
+          padding-top: 22px;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .project-library {
+          margin-bottom: 18px;
+        }
+        .has-project .project-library {
+          margin-bottom: 25px;
+        }
+      }
+      @media (max-width: 420px) {
+        .brand {
+          font-size: 12px;
+          gap: 7px;
+        }
+        .brand-mark {
+          width: 24px;
+          height: 24px;
+        }
+        .header-actions {
+          gap: 12px;
+        }
+        .text-button {
+          font-size: 11px;
+        }
+        .system-status summary {
+          font-size: 0;
+        }
+        .system-status summary:before {
+          width: 7px;
+          height: 7px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+          scroll-behavior: auto !important;
+        }
+      }
+
+      button {
+        color: #f5f5f7;
+      }
+      /* Graphite edition: one primary section, then intentionally revealed subsections. */
+      :root {
+        --accent: #3a87e5;
+        --link: #8bbaff;
+        --ok: #85bc95;
+        --warn: #dfb566;
+        --err: #ef9690;
+      }
+      body {
+        background: #131315;
+      }
+      .intro {
+        display: block;
+        max-width: 700px;
+        padding: 70px 0 38px;
+      }
+      .intro h1 {
+        font-size: 58px;
+        letter-spacing: -2.8px;
+      }
+      .intro p {
+        font-size: 16px;
+        max-width: 460px;
+      }
+      .intro-note,
+      .object-stage,
+      .landing-footer,
+      .brand-sub {
+        display: none !important;
+      }
+      .intro .eyebrow {
+        display: none;
+      }
+      .composer {
+        box-shadow: none;
+      }
+      .composer-inner {
+        padding-top: 20px;
+      }
+      .model-settings,
+      .inspiration {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+      }
+      .model-settings > summary,
+      .inspiration > summary {
+        font-size: 12px;
+        color: var(--muted);
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+      }
+      .model-settings > summary:after,
+      .inspiration > summary:after {
+        content: "+";
+      }
+      .model-settings[open] > summary:after,
+      .inspiration[open] > summary:after {
+        content: "−";
+      }
+      .model-row {
+        margin-top: 16px;
+      }
+      .model-hint {
+        font-size: 11px;
+      }
+      .composer-submit {
+        margin-top: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .mode-note {
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .examples {
+        border: 0;
+        padding-top: 0;
+      }
+      .workspace-header {
+        margin: 10px 0 36px;
+      }
+      .workspace-header h1 {
+        font-size: 34px;
+      }
+      .workspace-header .eyebrow {
+        font-size: 9px;
+      }
+      .workspace-header p,
+      .project-metrics {
+        display: none;
+      }
+      .section-heading {
+        margin-bottom: 18px;
+      }
+      .section-heading p {
+        display: none;
+      }
+      .section-heading h2 {
+        font-size: 22px;
+      }
+      .tabs .nav-label {
+        display: none;
+      }
+      .panel {
+        box-shadow: none;
+      }
+      .grid2 {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+      .panel.subsection {
+        padding: 0;
+        overflow: visible;
+        margin-bottom: 10px;
+        border-radius: 12px;
+        background: #1b1b1e;
+      }
+      .subsection > summary {
+        list-style: none;
+        padding: 19px 22px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 13px;
+        letter-spacing: 0;
+        line-height: 1.6;
+        font-weight: 500;
+        color: var(--text);
+        cursor: pointer;
+      }
+      .subsection > summary::-webkit-details-marker {
+        display: none;
+      }
+      .subsection > summary:after {
+        content: "+";
+        margin-left: auto;
+        color: var(--muted);
+        font-size: 19px;
+        line-height: 1;
+        font-weight: 300;
+      }
+      .subsection[open] > summary:after {
+        content: "−";
+      }
+      .subsection > summary h2 {
+        font: inherit;
+        letter-spacing: inherit;
+        margin: 0;
+        min-width: 0;
+      }
+      .subsection > summary .badge {
+        font-size: 9px;
+      }
+      .subsection[open] > summary {
+        border-bottom: 1px solid var(--line);
+      }
+      .subsection-content {
+        padding: 22px;
+        min-width: 0;
+        overflow: auto;
+      }
+      .subsection-content > .panel:last-child {
+        margin-bottom: 0;
+      }
+      .subsection-content > .panel {
+        padding: 18px;
+        background: #202023;
+      }
+      .subsection-content > .grid2 {
+        display: block;
+      }
+      .subsection-content .section-heading {
+        display: none;
+      }
+      .guide {
+        padding: 0;
+      }
+      .guide .subsection-content .lead p {
+        font-size: 14px;
+      }
+      .guide h3 {
+        margin-top: 0;
+      }
+      .subsection-content > .stepper {
+        margin: 0;
+      }
+      .subsection-content .sec:first-child {
+        margin-top: 0;
+      }
+      .subsection-content .guide {
+        padding: 0;
+      }
+      .tab.active {
+        background: #27272c;
+        color: #f2f2f4;
+        box-shadow: none;
+      }
+      .tab:hover:not(:disabled) {
+        background: #242428;
+      }
+      .mode.active {
+        background: #343439;
+        color: #fff;
+      }
+      .mode:hover:not(:disabled) {
+        background: #303035;
+      }
+      .brand-mark {
+        background: #e5e5ea;
+        color: #151517;
+      }
+      .code-view {
+        background: #111113;
+      }
+      .explain .chip-btn {
+        background: #25252a;
+        color: var(--text);
+      }
+      .bb-wrap {
+        background: #151517;
+        border-radius: 12px;
+      }
+      .bb-wrap .bb-board {
+        fill: #e9e8e1;
+        stroke: #99998c;
+      }
+      .mermaid-wrap.flow {
+        background: #171719;
+      }
+      .mermaid-wrap.dep svg .cluster rect {
+        fill: #242428 !important;
+        stroke: #44444a !important;
+      }
+      .flow svg .node text,
+      .flow svg .node .nodeLabel {
+        fill: #d4e2f4 !important;
+        color: #d4e2f4 !important;
+      }
+      .mermaid-wrap pre {
+        color: var(--text);
+      }
+      .footer {
+        margin-top: 48px;
+        padding-top: 20px;
+      }
+      .qa {
+        background: #202d3e;
+      }
+      .vbtn {
+        background: #2c2c31;
+        color: var(--text);
+        border-color: var(--line);
+      }
+      .vbtn:hover:not(:disabled) {
+        background: #38383e;
+      }
+      .ghost {
+        color: var(--text);
+      }
+      .counts div {
+        background: #27272c;
+      }
+      .detail td {
+        background: #242428;
+      }
+      @media (max-width: 760px) {
+        .intro {
+          padding: 45px 0 25px;
+        }
+        .intro h1 {
+          font-size: 46px;
+        }
+        .model-settings select {
+          width: 100%;
+        }
+        .composer-submit button {
+          width: auto;
+        }
+        .workspace-header h1 {
+          font-size: 29px;
+        }
+        .subsection > summary {
+          padding: 17px 16px;
+        }
+        .subsection-content {
+          padding: 17px 16px;
+        }
+        .subsection > summary h2 a {
+          float: none !important;
+          display: block;
+          margin: 6px 0 0 !important;
+          font-size: 11px;
+        }
+        .subsection > summary h2 {
+          font-size: 12px;
+        }
+        .workspace-header {
+          margin-bottom: 25px;
+        }
+      }
+          /* web-checked parts (Linkup) + storage panel */
+      .src-line { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); }
+      .src-line a { color: var(--link); }
+      .web-summary { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+      .web-summary b { color: var(--text); }
+      .store-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+      .store-sync { font-size: 13px; color: var(--muted); margin: 6px 0 14px; }
+      .store-sync .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--ok); vertical-align: 1px; }
+      .store-sync .dot.wait { background: var(--warn); } .store-sync .dot.bad { background: var(--err); }
+      .sql-card { border: 1px solid var(--line); border-radius: 10px; margin-top: 12px; overflow: hidden; }
+      .sql-card .sql-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 12px; background: var(--panel2); font-size: 13px; }
+      .sql-card pre { margin: 0; border: 0; border-radius: 0; max-height: 220px; font-size: 12px; white-space: pre; }
+      .sql-card button { padding: 4px 12px; font-size: 12px; }
+      .num { font-variant-numeric: tabular-nums; text-align: right; }
+</style>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="Engineering Project Helper home"
+        ><span class="brand-mark"
+          ><svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.4"
+            aria-hidden="true"
+          >
+            <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z" />
+            <path d="m4 7.5 8 4.5 8-4.5M12 12v9" /></svg></span
+        >Engineering Project Helper</a
+      ><span class="brand-sub">From an idea to your next build.</span>
+      <div class="header-actions">
+        <button type="button" class="text-button" id="new-project">
+          New project ↗
+        </button>
+        <details class="system-status">
+          <summary aria-label="System status">System status</summary>
+          <div class="chips" id="health" aria-live="polite"></div>
+        </details>
+      </div>
+    </header>
+    <main>
+      <section class="intro" aria-labelledby="intro-title">
+        <div>
+          <div class="eyebrow">Your engineering workspace</div>
+          <h1 id="intro-title">
+            Small idea.<br /><span>Real possibilities.</span>
+          </h1>
+          <p>
+            Turn your ESP32 idea into a project you can understand, build, and
+            make your own.
+          </p>
+          <p class="intro-note">
+            Designed by an engineer. Challenged by a reviewer.
+          </p>
+        </div>
+        <div class="object-stage">
+          <svg
+            viewBox="0 0 440 300"
+            role="img"
+            aria-label="An abstract ESP32 development board illustration"
+          >
+            <defs>
+              <linearGradient id="board" x1="0" x2="1" y2="1">
+                <stop stop-color="#31534e" />
+                <stop offset="1" stop-color="#1b3735" />
+              </linearGradient>
+              <linearGradient id="metal" x1="0" x2="1" y2="1">
+                <stop stop-color="#f4f4f2" />
+                <stop offset=".5" stop-color="#c2c5c5" />
+                <stop offset="1" stop-color="#e8e9e6" />
+              </linearGradient>
+            </defs>
+            <rect
+              x="87"
+              y="48"
+              width="267"
+              height="190"
+              rx="15"
+              fill="url(#board)"
+              stroke="#3f625b"
+              stroke-width="2"
+            />
+            <rect
+              x="101"
+              y="62"
+              width="239"
+              height="162"
+              rx="9"
+              fill="none"
+              stroke="#789083"
+              stroke-opacity=".3"
+            />
+            <g fill="#c9b578">
+              <rect x="107" y="38" width="7" height="25" rx="2" />
+              <rect x="107" y="224" width="7" height="25" rx="2" />
+              <rect x="122" y="38" width="7" height="25" rx="2" />
+              <rect x="122" y="224" width="7" height="25" rx="2" />
+              <rect x="137" y="38" width="7" height="25" rx="2" />
+              <rect x="137" y="224" width="7" height="25" rx="2" />
+              <rect x="152" y="38" width="7" height="25" rx="2" />
+              <rect x="152" y="224" width="7" height="25" rx="2" />
+              <rect x="167" y="38" width="7" height="25" rx="2" />
+              <rect x="167" y="224" width="7" height="25" rx="2" />
+              <rect x="182" y="38" width="7" height="25" rx="2" />
+              <rect x="182" y="224" width="7" height="25" rx="2" />
+              <rect x="197" y="38" width="7" height="25" rx="2" />
+              <rect x="197" y="224" width="7" height="25" rx="2" />
+              <rect x="212" y="38" width="7" height="25" rx="2" />
+              <rect x="212" y="224" width="7" height="25" rx="2" />
+              <rect x="227" y="38" width="7" height="25" rx="2" />
+              <rect x="227" y="224" width="7" height="25" rx="2" />
+              <rect x="242" y="38" width="7" height="25" rx="2" />
+              <rect x="242" y="224" width="7" height="25" rx="2" />
+              <rect x="257" y="38" width="7" height="25" rx="2" />
+              <rect x="257" y="224" width="7" height="25" rx="2" />
+              <rect x="272" y="38" width="7" height="25" rx="2" />
+              <rect x="272" y="224" width="7" height="25" rx="2" />
+              <rect x="287" y="38" width="7" height="25" rx="2" />
+              <rect x="287" y="224" width="7" height="25" rx="2" />
+              <rect x="302" y="38" width="7" height="25" rx="2" />
+              <rect x="302" y="224" width="7" height="25" rx="2" />
+              <rect x="317" y="38" width="7" height="25" rx="2" />
+              <rect x="317" y="224" width="7" height="25" rx="2" />
+              <rect x="332" y="38" width="7" height="25" rx="2" />
+              <rect x="332" y="224" width="7" height="25" rx="2" />
+            </g>
+            <g
+              fill="none"
+              stroke="#87a78a"
+              stroke-opacity=".38"
+              stroke-width="1.5"
+            >
+              <path
+                d="M116 80H145V105H177M116 195H150V170H177M260 80H319V125M261 180H310V210M280 142H327M153 210V185H200M275 210V193H240"
+              />
+            </g>
+            <rect
+              x="172"
+              y="85"
+              width="95"
+              height="102"
+              rx="5"
+              fill="url(#metal)"
+              stroke="#a6aeac"
+            />
+            <rect x="175" y="65" width="89" height="23" rx="2" fill="#202d2b" />
+            <path
+              d="M182 70h12v12h12V70h12v12h12V70h12v12h12"
+              fill="none"
+              stroke="#b4a571"
+              stroke-width="3"
+            />
+            <text
+              x="219"
+              y="125"
+              fill="#5a6463"
+              font-size="10"
+              text-anchor="middle"
+              font-family="sans-serif"
+              letter-spacing="2"
+            >
+              ESP32
+            </text>
+            <text
+              x="219"
+              y="144"
+              fill="#7a8380"
+              font-size="6"
+              text-anchor="middle"
+              font-family="monospace"
+            >
+              WIRELESS MODULE
+            </text>
+            <path
+              d="M201 160h36m-36 4h36m-36 4h36"
+              stroke="#a3aaa6"
+              stroke-width="1"
+            />
+            <rect
+              x="65"
+              y="120"
+              width="34"
+              height="46"
+              rx="5"
+              fill="url(#metal)"
+              stroke="#a6aeac"
+            />
+            <rect x="66" y="126" width="8" height="34" rx="3" fill="#515958" />
+            <rect
+              x="117"
+              y="126"
+              width="25"
+              height="31"
+              rx="3"
+              fill="#1a2424"
+            />
+            <g fill="#b6bbae">
+              <rect x="282" y="101" width="15" height="7" rx="2" />
+              <rect x="282" y="116" width="15" height="7" rx="2" />
+              <rect x="282" y="170" width="15" height="7" rx="2" />
+            </g>
+            <circle cx="317" cy="192" r="4" fill="#a1cd92" />
+            <rect
+              x="112"
+              y="177"
+              width="19"
+              height="13"
+              rx="3"
+              fill="#a7adab"
+            />
+            <rect x="115" y="180" width="13" height="7" rx="2" fill="#414b49" />
+            <text
+              x="296"
+              y="208"
+              fill="#a5b6ac"
+              font-size="6"
+              font-family="monospace"
+            >
+              DEV BOARD
+            </text></svg
+          ><span class="object-label">Built around ESP32</span>
+        </div>
+      </section>
+      <details class="composer" id="composer" open>
+        <summary>
+          Create something useful.<span
+            class="eyebrow"
+            style="margin-left: auto; font-size: 9px"
+            >ESP32 projects</span
+          >
+        </summary>
+        <div class="composer-inner">
+          <div class="modes" aria-label="Project action">
+            <button
+              type="button"
+              class="mode active"
+              data-m="develop"
+              aria-pressed="true"
+            >
+              Develop project</button
+            ><button
+              type="button"
+              class="mode"
+              data-m="improve"
+              aria-pressed="false"
+            >
+              Improve project
+            </button>
+          </div>
+          <form id="f">
+            <label for="prompt" class="prompt-label"
+              >What would you like to build?</label
+            ><input
+              type="text"
+              id="prompt"
+              placeholder="An ESP32 that waters my plant when the soil is dry…"
+              autocomplete="off"
+            />
+            <details class="model-settings">
+              <summary>Engineering team</summary>
+              <div class="model-row">
+                <label for="m-eng">Engineer<select id="m-eng"></select></label
+                ><label for="m-br"
+                  >Independent reviewer<select id="m-br"></select
+                ></label>
+              </div>
+              <div class="model-hint" id="model-hint" aria-live="polite"></div>
+            </details>
+            <div class="composer-submit">
+              <span class="mode-note" id="creation-mode">ESP32 project</span
+              ><button id="go">Build my project ↗</button>
+            </div>
+          </form>
+          <div id="improve-box" hidden>
+            <div class="imp-step">
+              <b>01 · Choose a project</b>
+              <div id="imp-projects" class="imp-list"></div>
+            </div>
+            <div class="imp-step" id="imp-step2">
+              <b>02 · Make it yours</b>
+              <span class="muted" id="imp-chosen"></span
+              ><label
+                for="imp-text"
+                class="prompt-label"
+                style="margin-top: 12px"
+                >What would you like to change?</label
+              ><textarea
+                id="imp-text"
+                rows="3"
+                placeholder="Use a 16x2 I2C LCD instead of the OLED, and keep it under £25"
+              ></textarea
+              ><button id="imp-go">Improve project ↗</button
+              ><span class="muted" style="font-size: 11px"
+                >Same engineering team. Only the affected stages are
+                rebuilt.</span
+              >
+            </div>
+          </div>
+          <div id="qa" aria-live="polite"></div>
+          <details class="inspiration">
+            <summary>Need an idea?</summary>
+            <div class="examples">
+              <span>A little inspiration</span
+              ><a
+                href="#"
+                data-prompt="an ESP32 that waters my plant when the soil is dry"
+                >Plant waterer ↗</a
+              ><a
+                href="#"
+                data-prompt="a desk air-quality monitor with CO2 readings on a small screen"
+                >Air-quality monitor ↗</a
+              ><a
+                href="#"
+                data-prompt="a doorbell that sends a phone notification when pressed"
+                >Connected doorbell ↗</a
+              >
+            </div>
+          </details>
+        </div>
+      </details>
+      <details class="project-library">
+        <summary>Your projects</summary>
+        <div id="runs"></div>
+      </details>
+      <section id="view" aria-label="Project workspace">
+        <div class="landing-footer">
+          <div>
+            <span>01 / PLAN</span>
+            <h2>A considered starting point.</h2>
+            <p>
+              Parts, connections, firmware and a build guide. Every choice comes
+              with a reason.
+            </p>
+          </div>
+          <div>
+            <span>02 / REVIEW</span>
+            <h2>A second pair of eyes.</h2>
+            <p>
+              An independent reviewer challenges the design. You decide when the
+              two disagree.
+            </p>
+          </div>
+          <div>
+            <span>03 / REFINE</span>
+            <h2>Change your mind. Keep your work.</h2>
+            <p>
+              Ask for an improvement. Rebuild the affected stages and keep the
+              rest.
+            </p>
+          </div>
+        </div>
+      </section>
+      <footer class="footer">
+        <span>Engineering Project Helper · Imperial AI Hackathon</span
+        ><span>Imagine. Understand. Build.</span>
+      </footer>
+    </main>
+
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      // Light diagram palette coordinated with the workspace.
+      mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: "strict",
+        flowchart: { htmlLabels: false, curve: "basis" },
+        theme: "base",
+        themeVariables: {
+          darkMode: true,
+          background: "transparent",
+          fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif",
+          fontSize: "13px",
+          primaryColor: "#2c3b5c",
+          primaryBorderColor: "#7b93c4",
+          primaryTextColor: "#f1f5fb",
+          secondaryColor: "#202b40",
+          secondaryBorderColor: "#3d4c6e",
+          secondaryTextColor: "#dfe6f3",
+          tertiaryColor: "#161d2c",
+          tertiaryBorderColor: "#3d4c6e",
+          tertiaryTextColor: "#dfe6f3",
+          mainBkg: "#2c3b5c",
+          nodeBorder: "#7b93c4",
+          nodeTextColor: "#f1f5fb",
+          textColor: "#dfe6f3",
+          lineColor: "#93a3c4",
+          edgeLabelBackground: "#161d2c",
+          clusterBkg: "#161d2c",
+          clusterBorder: "#2a3550",
+          titleColor: "#dfe6f3",
+        },
+      });
+
+      const STAGES = [
+        "requirements",
+        "parts",
+        "wiring",
+        "procurement",
+        "firmware",
+        "diagram",
+        "guide",
+      ];
+      const STEPS = [...STAGES, "review"];
+      const TABS = [
+        "Overview",
+        "BoM",
+        "Wiring",
+        "Firmware",
+        "For improvement",
+        "Other",
+      ];
+      let otherSub = "Decision log",
+        depAll = false;
+      let mode = "develop";
+      let codeSel = null,
+        codeAnchor = null,
+        explainCache = {};
+      let current = null,
+        tab = "Overview",
+        timer = null,
+        data = null,
+        openKey = null,
+        lastSig = "",
+        reviews = [],
+        library = [];
+
+      const $ = (s) => document.querySelector(s);
+      const esc = (s) =>
+        String(s ?? "").replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+      const api = async (p, opt) => {
+        const r = await fetch(p, opt);
+        if (!r.ok) throw new Error(await r.text());
+        return r.json();
+      };
+
+      async function health() {
+        try {
+          const h = await api("/api/health");
+          const tc = h.toolchain === "ready";
+          $("#health").innerHTML = [
+            `<span class="chip ${h.providers.search === "none" ? "warn" : "ok"}">search ${esc(h.providers.search)}</span>`,
+            `<span class="chip ${["mongodb", "databricks"].includes(h.providers.db) ? "ok" : "warn"}">db ${esc(h.providers.db)}</span>`,
+            `<span class="chip ${String(h.providers.memory).startsWith("atlas") ? "ok" : "warn"}" title="${esc(h.providers.memory)} · ${esc(h.providers.embeddings)}">memory ${String(h.providers.memory).startsWith("atlas") ? "vector search" : "local"}</span>`,
+            `<span class="chip ${tc ? "ok" : "warn"}" title="${esc(h.toolchain)}">compile ${tc ? "ready" : "off"}</span>`,
+          ].join("");
+        } catch (e) {
+          $("#health").innerHTML = `<span class="chip warn">API offline</span>`;
+        }
+      }
+
+      async function loadRuns() {
+        const runs = await api("/api/runs");
+        $("#runs").innerHTML =
+          runs
+            .map(
+              (
+                r,
+              ) => `<div class="run-card" data-id="${r.id}"><button type="button" class="run-item ${r.id === current ? "active" : ""}" data-id="${r.id}">
+      <div class="p">${esc(r.prompt)}</div><div class="s">${esc(r.status)} · ${new Date(r.created_at).toLocaleTimeString()}</div></button>
+      <button type="button" class="run-del" data-id="${r.id}" title="Delete this project" aria-label="Delete project: ${esc(r.prompt)}">×</button></div>`,
+            )
+            .join("") ||
+          `<div class="s" style="color:var(--muted)">No runs yet</div>`;
+        document
+          .querySelectorAll(".run-item")
+          .forEach((el) => (el.onclick = () => open(el.dataset.id)));
+        document.querySelectorAll(".run-del").forEach(
+          (el) =>
+            (el.onclick = (e) => {
+              e.stopPropagation();
+              confirmDelete(el.closest(".run-card"), el.dataset.id);
+            }),
+        );
+      }
+
+      function confirmDelete(card, id) {
+        if (!card || card.querySelector(".run-confirm")) return;
+        const box = document.createElement("div");
+        box.className = "run-confirm";
+        box.innerHTML = `<span>Delete this project?</span><button type="button" class="yes">Delete</button><button type="button" class="no">Cancel</button>`;
+        card.append(box);
+        box.querySelector(".no").onclick = () => box.remove();
+        box.querySelector(".no").focus();
+        box.querySelector(".yes").onclick = async () => {
+          box.querySelector("span").textContent = "Deleting…";
+          try {
+            await api(`/api/runs/${id}`, { method: "DELETE" });
+          } catch (e) {
+            box.querySelector("span").textContent = "Couldn't delete: " + e.message;
+            return;
+          }
+          if (id === current) {
+            clearInterval(timer);
+            current = null;
+            const runs = await api("/api/runs");
+            if (runs.length) {
+              await open(runs[0].id);
+            } else {
+              location.reload();
+              return;
+            }
+          }
+          await loadRuns();
+          if (mode === "improve") renderImproveList();
+        };
+      }
+
+      async function open(id) {
+        if (id !== current) ticked = new Set();
+        if (id !== current) {
+          codeSel = null;
+          codeAnchor = null;
+        }
+        current = id;
+        openKey = null;
+        lastSig = "";
+        clearInterval(timer);
+        $("#composer").open = mode === "improve";
+        await poll();
+        timer = setInterval(poll, 1500);
+        loadRuns();
+      }
+
+      async function poll() {
+        if (!current) return;
+        try {
+          data = await api(`/api/runs/${current}`);
+        } catch (e) {
+          return;
+        }
+        const sig = JSON.stringify([
+          data.run.status,
+          data.run.events.length,
+          tab,
+          openKey,
+          data.run.review_status,
+          data.run.delivery_status,
+          otherSub,
+          depAll,
+          data.decisions
+            .map(
+              (d) =>
+                d.key +
+                d.version +
+                (d.review?.verdict || "") +
+                (d.review?.user_verdict || ""),
+            )
+            .join(),
+        ]);
+        if (sig !== lastSig) {
+          lastSig = sig;
+          try {
+            reviews = await api(`/api/runs/${current}/reviews`);
+          } catch (e) {
+            reviews = [];
+          }
+          try {
+            library = await api(`/api/precedents`);
+          } catch (e) {
+            library = [];
+          }
+          render();
+        }
+        if (["done", "failed"].includes(data.run.status)) {
+          clearInterval(timer);
+          loadRuns();
+          $("#go").disabled = false;
+        }
+      }
+
+      function stageState(s) {
+        const r = data.run,
+          i = STEPS.indexOf(s),
+          cur = STEPS.indexOf(r.current_stage);
+        if (s === "review" && r.review_status === "off") return "";
+        if (s === "review" && r.status === "done")
+          return r.review_status === "unresolved" ? "failed" : "done";
+        if (
+          s === "review" &&
+          ["review", "engineer"].includes(r.current_stage) &&
+          r.status === "running"
+        )
+          return "running";
+        if (r.status === "done") return "done";
+        if (r.status === "failed")
+          return i < cur ? "done" : i === cur ? "failed" : "";
+        if (r.status === "running")
+          return i < cur ? "done" : i === cur ? "running" : "";
+        return "";
+      }
+
+      const byKey = () =>
+        Object.fromEntries(data.decisions.map((d) => [d.key, d]));
+      const confBar = (c) => {
+        const col =
+          c >= 0.8 ? "var(--ok)" : c >= 0.5 ? "var(--warn)" : "var(--err)";
+        return `<span class="conf" title="${c}"><i style="width:${c * 100}%;background:${col}"></i></span>`;
+      };
+      function reviewCounts(dis) {
+        // One consistent summary instead of per-round model text (which could say "no blocking issues" next to
+        // "disagreements for you to judge").
+        const ch = reviews.filter(
+          (x) => x.verdict !== "approve" || x.after_logbook,
+        );
+        if (!ch.length)
+          return `<p style="color:var(--muted)">${(data.run.review_rounds || []).length ? "No challenges raised." : "Reviews appear after the build."}</p>`;
+        const withdrawn = ch.filter(
+          (x) => x.after_logbook === "withdrawn",
+        ).length;
+        const fixed = ch.filter((x) => x.engineer_response === "accept").length;
+        const open = dis.filter((d) => !d.review.user_verdict).length;
+        return `<div class="counts"><div><b>${ch.length}</b>raised</div><div><b>${withdrawn}</b>withdrawn after logbook</div>
+    <div><b>${fixed}</b>accepted &amp; fixed</div><div><b style="color:${open ? "var(--warn)" : "var(--ok)"}">${dis.length}</b>disagreements${open ? ` (${open} to judge)` : ""}</div></div>`;
+      }
+      const VERDICT_TEXT = {
+        approved: "Approved",
+        approved_with_notes: "Approved with notes",
+        disagreements: "Disagreements for you to judge",
+        judged: "All disagreements judged",
+        unresolved: "Fixes not re-reviewed",
+        pending: "Pending",
+        off: "Off",
+      };
+      const verdictBadge = (r) =>
+        !r
+          ? `<span class="verdict v-low">pending</span>`
+          : r.verdict === "approve"
+            ? `<span class="verdict v-approve">approve</span>`
+            : `<span class="verdict v-${esc(r.severity)}">${esc(r.verdict)} · ${esc(r.severity)}</span>`;
+      const resBadge = (x) =>
+        x === "fixed"
+          ? `<span class="badge ok">fixed in a later version</span>`
+          : x === "retired"
+            ? `<span class="badge">decision removed</span>`
+            : x === "withdrawn"
+              ? `<span class="badge ok">withdrawn by Bar Raiser</span>`
+              : x === "kept"
+                ? `<span class="badge">kept (you sided with the engineer)</span>`
+                : `<span class="badge warn">open</span>`;
+      const srcLinks = (ev) =>
+        (ev || [])
+          .filter((e) => e.url)
+          .map(
+            (e, i) =>
+              `<a href="${esc(e.url)}" target="_blank" rel="noopener" title="${esc(e.title || e.url)}">[${i + 1}]</a>`,
+          )
+          .join(" ");
+
+      const SEARCH_NAMES = { linkup: "Linkup", tavily: "Tavily", mock: "offline demo search", "mock-search": "offline demo search" };
+      const webEvidence = (ev) =>
+        (ev || []).filter((e) => e.url && SEARCH_NAMES[e.source]);
+      const domainOf = (u) => {
+        try {
+          return new URL(u).hostname.replace(/^www\./, "");
+        } catch (e) {
+          return u;
+        }
+      };
+      function webChecked(ev) {
+        const web = webEvidence(ev);
+        if (!web.length) return "";
+        const seen = new Set(),
+          links = web
+            .filter((e) => !seen.has(domainOf(e.url)) && seen.add(domainOf(e.url)))
+            .slice(0, 3)
+            .map((e) => `<a href="${esc(e.url)}" target="_blank" rel="noopener" title="${esc(e.title || e.url)}">${esc(domainOf(e.url))}</a>`)
+            .join(" · ");
+        return `<span class="src-line">Checked by ${esc(SEARCH_NAMES[web[0].source])}: ${links}</span>`;
+      }
+
+      function improveCount() {
+        if (!data) return 0;
+        return data.decisions.filter(
+          (d) => isDisagreement(d) && !d.review.user_verdict,
+        ).length;
+      }
+      const isDisagreement = (d) =>
+        d.review &&
+        d.review.verdict !== "approve" &&
+        d.review.engineer_response === "reject" &&
+        ["high", "medium"].includes(d.review.severity);
+
+      const NAV = {
+        Overview: ["Build guide", "M4 4h6v16H4zM14 4h6v16h-6z"],
+        BoM: [
+          "Parts & budget",
+          "M4 7h16M6 7V4h12v3M5 7l1 13h12l1-13M10 11v5m4-5v5",
+        ],
+        Wiring: [
+          "Connections",
+          "M5 3v5a4 4 0 0 0 4 4h6a4 4 0 0 1 4 4v5M19 3v5a4 4 0 0 1-4 4H9a4 4 0 0 0-4 4v5",
+        ],
+        Firmware: ["Code & logic", "m8 7-5 5 5 5m8-10 5 5-5 5M14 4l-4 16"],
+        "For improvement": [
+          "Review & refine",
+          "m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L2.2 9.4l6.1-.9L12 3Z",
+        ],
+        Other: [
+          "Behind the build",
+          "M4 6h16M4 12h16M4 18h16M8 3v6m8 0v6M10 15v6",
+        ],
+      };
+      const SECTION_COPY = {
+        Overview: "Your project, from the first connection to the final test.",
+        BoM: "The parts, the evidence, and what it will cost.",
+        Wiring: "Every connection, drawn from the validated pin map.",
+        Firmware: "Explore the code. Follow the logic. Understand your build.",
+        "For improvement":
+          "An independent perspective. The final say is yours.",
+        Other: "Every decision has a history. Follow the reasoning.",
+      };
+      function workspaceHeader() {
+        const r = data.run,
+          sum = byKey()["req.summary"]?.choice;
+        const state =
+          r.status === "running"
+            ? "Building…"
+            : r.status === "failed"
+              ? "Build interrupted"
+              : r.delivery_status === "delivered_with_gaps"
+                ? "Delivered with gaps"
+                : r.delivery_status === "delivered"
+                  ? "Delivered"
+                  : "Project";
+        const cls =
+          r.status === "failed"
+            ? "err"
+            : r.delivery_status === "delivered_with_gaps"
+              ? "warn"
+              : r.status === "running"
+                ? "running"
+                : "";
+        return `<div class="workspace-header"><div><div class="eyebrow">ESP32${r.models?.engineer === "offline" || r.models?.bar_raiser === "offline" ? " / Offline demo" : ""}</div><h1>${esc(sum?.project_name || "A new idea takes shape.")}</h1></div><span class="project-state ${cls}" role="status">${esc(state)}</span></div>`;
+      }
+      function render() {
+        const r = data.run,
+          n = improveCount();
+        document.body.classList.add("has-project");
+        const tabs = TABS.map(
+          (t) =>
+            `<button type="button" role="tab" aria-selected="${t === tab}" id="tab-${TABS.indexOf(t)}" aria-controls="tabbody" class="tab ${t === tab ? "active" : ""}" data-t="${t}" aria-label="${esc(t)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="${NAV[t][1]}" stroke-linecap="round" stroke-linejoin="round"/></svg>${NAV[t][0]}${t === "For improvement" && n ? `<span class="tab-count">${n}</span>` : ""}</button>`,
+        ).join("");
+        $("#view").innerHTML =
+          `${workspaceHeader()}<div class="workspace-layout"><nav class="tabs" role="tablist" aria-label="Project sections"><div class="nav-label" role="presentation">Explore your build</div>${tabs}</nav><div class="workspace-main">${r.status === "failed" ? `<div class="panel" style="border-color:var(--err)"><h2 style="color:var(--err)">Run failed</h2><pre>${esc(r.error)}</pre></div>` : ""}<div class="section-heading"><h2>${NAV[tab][0]}</h2><p>${SECTION_COPY[tab]}</p></div><div id="tabbody" role="tabpanel" aria-labelledby="tab-${TABS.indexOf(tab)}">${body()}</div></div></div>`;
+        document.querySelectorAll(".tab").forEach(
+          (el) =>
+            (el.onclick = () => {
+              tab = el.dataset.t;
+              lastSig = "";
+              render();
+              document
+                .querySelector(`.tab[data-t="${CSS.escape(tab)}"]`)
+                ?.focus({ preventScroll: true });
+            }),
+        );
+        organizeSections();
+        wire();
+        renderMermaid();
+        if (tab === "Other" && otherSub === "Storage") loadStorage();
+      }
+
+      function stepper() {
+        const reviewable = data.decisions.filter((d) => d.stage !== "guide");
+        const nReviewed = reviewable.filter((d) => d.review).length;
+        return `<div class="stepper">${STEPS.map((s) =>
+          s === "review"
+            ? `<div class="step ${stageState(s)}"><b class="stage-review">bar raiser</b>${nReviewed}/${reviewable.length} reviewed</div>`
+            : `<div class="step ${stageState(s)}"><b class="stage-${s}">${s}</b>${esc(data.decisions.filter((d) => d.stage === s).length)} decisions</div>`,
+        ).join("")}</div>`;
+      }
+
+      let ticked = new Set();
+      const disclosureState = new Map();
+      function subsection(title, content, cls = "") {
+        return `<details class="panel subsection ${cls}"><summary>${title}</summary><div class="subsection-content">${content}</div></details>`;
+      }
+      function organizeSections() {
+        const root = $("#tabbody");
+        // Review headings own everything up to the next heading, rather than a wall of panels.
+        for (const heading of [...root.querySelectorAll(":scope > h3.sec")]) {
+          const group = document.createElement("details");
+          group.className = "panel subsection";
+          const summary = document.createElement("summary");
+          summary.innerHTML = heading.innerHTML;
+          const content = document.createElement("div");
+          content.className = "subsection-content";
+          let next = heading.nextElementSibling;
+          while (next && !next.matches("h3.sec")) {
+            const following = next.nextElementSibling;
+            content.append(next);
+            next = following;
+          }
+          group.append(summary, content);
+          heading.replaceWith(group);
+        }
+        for (const panel of [...root.querySelectorAll(".panel:not(details)")]) {
+          // A panel already owned by a subsection remains within that subsection.
+          if (panel.closest("details.subsection")) continue;
+          const heading = panel.querySelector(":scope > h2");
+          const group = document.createElement("details");
+          group.className = panel.className + " subsection";
+          const summary = document.createElement("summary");
+          if (heading) {
+            summary.append(heading);
+          } else summary.textContent = "Details";
+          const content = document.createElement("div");
+          content.className = "subsection-content";
+          while (panel.firstChild) content.append(panel.firstChild);
+          group.append(summary, content);
+          panel.replaceWith(group);
+        }
+        root.querySelectorAll("details").forEach((d, i) => {
+          const key = [current, tab, otherSub, i].join(":");
+          d.open = disclosureState.get(key) ?? false;
+          d.addEventListener("toggle", () => {
+            disclosureState.set(key, d.open);
+            // Mermaid needs a visible container to measure diagrams correctly.
+            if (d.open) renderMermaid();
+          });
+        });
+      }
+      function guidance(sum) {
+        const g = data.artifacts.guide?.content;
+        if (!g)
+          return subsection(
+            "Build instructions",
+            `<p class="muted">${data.run.status === "running" ? "The guide will be available when the design is ready." : "No build guide for this run."}</p>`,
+            "guide",
+          );
+        const w = data.artifacts.wiring?.content;
+        const items = [
+          ...(w?.connections || []).map(
+            (c) => `${c.part_id}.${c.part_pin} → ESP32 ${c.esp32_pin}`,
+          ),
+          ...(w?.support_components || [])
+            .filter((s) => s.kind !== "wire" || s.ends)
+            .map(
+              (s) =>
+                `${s.name}${s.value ? " " + s.value : ""}: ${s.wiring || (s.ends || []).join(" ↔ ")}`,
+            ),
+        ];
+        const count = items.filter((x) => ticked.has(x)).length;
+        return (
+          `<div class="guide">` +
+          subsection(
+            "About this build",
+            `<div class="lead">${String(g.what_it_is || "")
+              .split(/\n\s*\n/)
+              .map((p) => `<p>${esc(p)}</p>`)
+              .join(
+                "",
+              )}</div>${g.you_will_need ? `<div class="need"><b>You'll need:</b> ${esc(g.you_will_need)}</div>` : ""}`,
+          ) +
+          subsection(
+            "Build steps",
+            `<ol class="steps">${(g.build_steps || []).map((s) => `<li><b>${esc(s.title)}</b><p>${esc(s.body)}</p></li>`).join("")}</ol>`,
+          ) +
+          (items.length
+            ? subsection(
+                `Connection checklist <span class="badge checklist-count">${count}/${items.length}</span>`,
+                `<div class="checklist">${items.map((x) => `<label class="${ticked.has(x) ? "done" : ""}"><input type="checkbox" data-w="${esc(x)}" ${ticked.has(x) ? "checked" : ""}><span class="mono">${esc(x)}</span></label>`).join("")}</div>`,
+              )
+            : "") +
+          subsection(
+            "Test & calibrate",
+            `<ul>${(g.test_and_calibrate || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`,
+          ) +
+          (g.safety?.length
+            ? subsection(
+                "Safety",
+                `<ul>${g.safety.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`,
+              )
+            : "") +
+          subsection(
+            "Troubleshooting",
+            `<ul>${(g.troubleshooting || []).map((x) => `<li><b>${esc(x.symptom)}:</b> ${esc(x.fix)}</li>`).join("")}</ul>`,
+          ) +
+          `</div>`
+        );
+      }
+
+      function deliveryHeader() {
+        const r = data.run,
+          gaps = r.gaps || [],
+          n = improveCount();
+        if (r.status === "running")
+          return `<div class="panel delivery"><h2>Building… <span class="badge">${esc(r.current_stage || "starting")}</span></h2>${stepper()}</div>`;
+        if (!r.delivery_status || r.delivery_status === "pending")
+          return `<div class="panel delivery">${stepper()}</div>`;
+        const ok = r.delivery_status === "delivered";
+        const extra =
+          gaps.length || n
+            ? ` <a class="goto" data-t="For improvement">${[gaps.length ? `${gaps.length} gap(s)` : "", n ? `${n} decision(s) need your judgement` : ""].filter(Boolean).join(" · ")} → For improvement</a>`
+            : "";
+        return `<div class="panel delivery ${ok ? "clean" : "gaps"}"><h2 style="color:${ok ? "var(--ok)" : "var(--warn)"}">${ok ? "Delivered: every must-have criterion met" : "Delivered"}${extra}</h2>${stepper()}</div>`;
+      }
+
+      function body() {
+        const a = data.artifacts,
+          k = byKey();
+        switch (tab) {
+          case "Overview": {
+            const k = byKey(),
+              sum = k["req.summary"]?.choice,
+              features = data.decisions.filter((d) => d.kind === "feature"),
+              m = data.run.models || {};
+            return (
+              subsection(
+                "Project brief",
+                `<p>${esc(sum?.summary || data.run.prompt)}</p><p class="muted">Your request: ${esc(data.run.prompt)}</p>${(data.run.clarifications || []).map((c) => `<p><b>${esc(c.q)}</b> ${esc(c.a)}</p>`).join("")}<table>${features.map((f) => `<tr><td>${esc(f.choice.description)}</td><td>${esc(f.choice.type)}</td></tr>`).join("")}</table>${k["req.power"] ? `<p>Power: ${esc(k["req.power"].choice.source)} · Wi-Fi: ${k["req.connectivity"]?.choice.wifi ? "yes" : "no"}</p>` : ""}${k["req.assumptions"] ? `<p class="muted">Assumptions: ${k["req.assumptions"].choice.map(esc).join(" · ")}</p>` : ""}<p class="muted">Engineer: ${esc(m.engineer_label || "")} · Reviewer: ${esc(m.bar_raiser_label || "")}</p>`,
+              ) + guidance(sum)
+            );
+          }
+          case "BoM": {
+            if (!a.parts_list)
+              return `<div class="empty">Parts not chosen yet</div>`;
+            const cart = a.cart?.content;
+            const lines = Object.fromEntries(
+              (cart?.lines || []).map((l) => [l.part_id, l]),
+            );
+            const rows = a.parts_list.content.parts
+              .map((p) => {
+                const d = k["part." + p.id],
+                  l = lines[p.id];
+                const unit = l
+                  ? Number(l.unit_price_gbp)
+                  : (p.est_price_gbp ?? null);
+                const qty = l?.qty ?? p.qty;
+                return `<tr><td><b>${esc(p.name)}</b><br><span class="mono" style="color:var(--muted)">${esc(p.model)}</span>
+            ${p.pins?.length ? `<br><span class="mono" style="color:var(--muted);font-size:11px">pins: ${esc(p.pins.join(", "))}</span>` : ""}</td>
+          <td>${esc(qty)}</td>
+          <td><span class="badge">${esc(p.interface)}</span><br><span class="mono" style="font-size:11px">${[
+            p.supply_voltage,
+            p.logic_voltage && p.logic_voltage + " logic",
+          ]
+            .filter((v) => v && !String(v).startsWith("n/a"))
+            .map(esc)
+            .join(" · ")}</span></td>
+          <td>${p.verified ? `<span class="badge ok">verified</span>` : p.role === "passive" || p.role === "mechanical" ? `<span class="badge">${esc(p.role)}</span>` : `<span class="badge warn">unverified</span>`}${webChecked(d?.evidence)}
+            ${p.verification_notes ? `<br><span style="color:var(--muted);font-size:12px">${esc(p.verification_notes)}</span>` : ""}</td>
+          <td>${unit != null ? `£${(unit * (qty || 1)).toFixed(2)}` : ""}${l ? `<br><span class="badge ${l.price_source === "live" ? "ok" : "warn"}">${esc(l.price_source)}</span>` : ""}</td>
+          <td>${l?.url ? `<a class="buy" href="${esc(l.url)}" target="_blank" rel="noopener">Buy ↗</a>` : `<span style="color:var(--muted)">${cart ? "no link" : "…"}</span>`}
+            ${(l?.sources || [])
+              .slice(1)
+              .map(
+                (u, i) =>
+                  `<a href="${esc(u)}" target="_blank" rel="noopener" style="font-size:12px">[${i + 2}]</a>`,
+              )
+              .join(" ")}</td></tr>`;
+              })
+              .join("");
+            const sup = lines.support;
+            const supRow = sup
+              ? `<tr><td><b>${esc(sup.name)}</b><br><span class="mono" style="color:var(--muted)">${esc(sup.model)}</span></td><td>${esc(sup.qty)}</td><td></td><td><span class="badge">small parts</span></td>
+          <td>£${Number(sup.unit_price_gbp).toFixed(2)}<br><span class="badge warn">${esc(sup.price_source)}</span></td><td><span style="color:var(--muted)">any kit</span></td></tr>`
+              : "";
+            const total = cart
+              ? Number(cart.total_gbp)
+              : a.parts_list.content.parts.reduce(
+                  (s, p) => s + (p.est_price_gbp || 0) * (p.qty || 1),
+                  0,
+                );
+            return `<div class="panel ${cart?.over_budget ? "gaps" : ""}"><h2>Bill of materials
+          <span class="badge ${cart?.over_budget ? "err" : "ok"}">${cart ? "" : "≈ "}£${total.toFixed(2)}${cart?.budget_gbp ? ` / £${Number(cart.budget_gbp).toFixed(2)} budget` : ""}</span></h2>
+        <p style="color:var(--muted)">Everything needed to build it. Specs are checked against live web sources; buy links come from live search. <span class="badge warn">estimate</span> means no live price was found. You do the final checkout.</p>
+        ${(() => {
+          const parts = a.parts_list.content.parts.filter((p) => !["passive", "mechanical"].includes(p.role));
+          const checked = parts.filter((p) => webEvidence(k["part." + p.id]?.evidence).length);
+          const srcCount = new Set(parts.flatMap((p) => webEvidence(k["part." + p.id]?.evidence).map((e) => e.url))).size;
+          const engine = SEARCH_NAMES[(parts.flatMap((p) => webEvidence(k["part." + p.id]?.evidence))[0] || {}).source] || "web search";
+          const cl = cart?.lines || [], live = cl.filter((l) => l.price_source === "live").length;
+          return `<div class="web-summary"><span class="badge ${checked.length === parts.length && parts.length ? "ok" : checked.length ? "warn" : ""}">${checked.length} of ${parts.length} parts checked by ${esc(engine)}</span>
+            <span><b>${srcCount}</b> web sources cited</span>${cl.length ? `<span><b>${live}</b> of ${cl.length} prices are live listings</span>` : ""}</div>`;
+        })()}
+        <table><tr><th>Item</th><th>Qty</th><th>Interface / voltage</th><th>Verification</th><th>Price</th><th>Buy</th></tr>${rows}${supRow}</table></div>`;
+          }
+          case "Wiring": {
+            if (!a.wiring)
+              return `<div class="empty">Wiring not done yet</div>`;
+            const w = a.wiring.content;
+            const rows = w.connections
+              .map(
+                (c) =>
+                  `<tr><td>${esc(c.part_id)}.<b>${esc(c.part_pin)}</b></td><td class="mono"><b>${esc(c.esp32_pin)}</b></td><td><span class="badge">${esc(c.direction)}</span></td><td>${esc(c.signal_type)}</td><td style="color:var(--muted)">${esc(c.rationale)}</td></tr>`,
+              )
+              .join("");
+            const issues =
+              w.issues
+                .map(
+                  (i) =>
+                    `<div class="${i.severity === "error" ? "error" : "warn"}">${esc(i.severity)} · ${esc(i.pin)}: ${esc(i.message)}</div>`,
+                )
+                .join("") ||
+              `<div style="color:var(--ok)">No validator issues</div>`;
+            const sup = (w.support_components || [])
+              .map(
+                (s) =>
+                  `<tr><td><b>${esc(s.name)}</b> ${esc(s.value)}</td><td>${esc(s.wiring)}</td><td style="color:var(--muted)">${esc(s.purpose)}</td></tr>`,
+              )
+              .join("");
+            const bb = w.breadboard_svg
+              ? `<div class="panel"><h2>Breadboard layout <span class="badge">${esc(w.board)}</span>
+             <a style="float:right;font-size:13px" href="/api/runs/${data.run.id}/breadboard.svg">Download SVG</a></h2>
+             <div class="bb-wrap">${w.breadboard_svg}</div>
+             <p style="color:var(--muted);font-size:12px;margin:8px 0 0">Drawn from the validated pin map, so it always matches the table below. Hover a wire to see what it connects. Top rails: 5 V and GND; bottom rails: 3.3 V and GND.</p>
+             ${(w.breadboard_notes || []).map((n) => `<p class="warn" style="color:var(--warn)">${esc(n)}</p>`).join("")}</div>`
+              : `<div class="panel"><h2>Wiring diagram <span class="badge">${esc(w.board)}</span></h2><div class="mermaid-wrap"><pre class="mermaid">${esc(w.mermaid)}</pre></div></div>`;
+            return `${bb}
+        <div class="panel"><h2>Pin map</h2><table><tr><th>Module pin</th><th>ESP32</th><th>Dir</th><th>Signal</th><th>Why</th></tr>${rows}</table></div>
+        <div class="grid2"><div class="panel"><h2>Support components</h2><table>${sup || "<tr><td>none</td></tr>"}</table></div>
+        <div class="panel"><h2>ESP32 pin validator</h2><div class="events">${issues}</div></div></div>`;
+          }
+          case "Firmware": {
+            if (!a.firmware)
+              return `<div class="empty">Firmware not written yet</div>`;
+            const fw = a.firmware.content,
+              cl = a.compile_log?.content || {};
+            const cls =
+              cl.status === "ok"
+                ? "ok"
+                : cl.status === "failed"
+                  ? "err"
+                  : "warn";
+            const flow = a.flow_diagram?.content;
+            return `<div class="panel"><h2>${esc(fw.filename)} <span class="badge ${cls}">compile ${esc(cl.status)}</span> <span class="badge">${esc(cl.attempts)} attempt(s)</span> ${cl.size ? `<span class="badge">${esc(cl.size)}</span>` : ""}
+          <a style="float:right" href="/api/runs/${data.run.id}/firmware">Download .ino</a>
+          <a style="float:right;margin-right:14px;cursor:pointer" id="copy-code">Copy code</a></h2>
+        <p style="color:var(--muted);margin:0 0 10px">Libraries: ${fw.libraries.map(esc).join(", ") || "none"}${fw.notes ? " · " + esc(fw.notes) : ""}
+          <br><b style="color:var(--text)">Click a line</b>, drag across lines, or shift-click to select a range; the explanation and its step in the flow diagram light up. Click a diagram step to jump to its code.</p>
+        <div class="fw-grid">
+          <div class="code-view" id="code">${codeLines(fw.code, flow?.walkthrough)}</div>
+          <div class="side">
+            <div class="explain" id="explain"></div>
+            ${
+              flow
+                ? `<div class="mermaid-wrap flow" id="flow"><pre class="mermaid">${esc(flow.mermaid)}</pre></div>
+              <p style="color:var(--muted);font-size:12px;margin:0">${esc(flow.explanation)}</p>`
+                : `<div class="empty">Flow diagram not drawn yet</div>`
+            }
+          </div>
+        </div></div>
+        <details class="panel"><summary style="cursor:pointer"><b>Compiler log</b> <span class="badge">${esc(cl.fqbn)}</span></summary><pre style="max-height:240px;margin-top:10px">${esc(cl.log)}</pre></details>`;
+          }
+          case "For improvement": {
+            const criteria = data.run.acceptance_criteria || [];
+            return (
+              subsection(
+                "Acceptance criteria",
+                `<p class="muted">Written before the design; checked against the final delivery.</p><table><tr><th>ID</th><th>Criterion</th><th>Priority</th><th>Status</th></tr>${criteria.map((c) => `<tr><td>${esc(c.id)}</td><td>${esc(c.criterion)}<br><span class="muted">${esc(c.note || "")}</span></td><td>${esc(c.priority)}</td><td class="crit-${esc(c.status)}">${esc(c.status || "pending")}</td></tr>`).join("")}</table>`,
+              ) + improvementTab()
+            );
+          }
+          case "Other":
+            return otherTab();
+        }
+        return "";
+      }
+
+      function improvementTab() {
+        const r = data.run,
+          busy = r.status === "running";
+        // (1) decisions that need the user's judgement
+        const dis = data.decisions.filter(isDisagreement);
+        const disHtml = dis
+          .map(
+            (
+              d,
+            ) => `<div class="panel" style="border-color:${d.review.user_verdict ? "#2d5e46" : "var(--warn)"}">
+      <h2><code>${esc(d.key)}</code> ${verdictBadge(d.review)} ${d.review.user_verdict ? `<span class="badge ok">judged: ${esc(d.review.user_verdict.replaceAll("_", " "))}</span>` : ""}</h2>
+      <p><b>Bar Raiser:</b> ${esc(d.review.notes)}${d.review.suggested_fix ? ` <span style="color:var(--muted)"><b>Fix:</b> ${esc(d.review.suggested_fix)}</span>` : ""}</p><p><b>Engineer:</b> ${esc(d.review.engineer_reason)}</p>
+      ${
+        d.review.user_verdict
+          ? d.review.user_reason
+            ? `<p style="color:var(--muted)">Your reason: ${esc(d.review.user_reason)}</p>`
+            : ""
+          : `
+      <form class="verdict-form" data-k="${esc(d.key)}" data-v="${d.version}">
+        <button type="button" class="vbtn" data-verdict="bar_raiser_right" ${busy ? "disabled" : ""}>Bar Raiser was right</button>
+        <button type="button" class="vbtn" data-verdict="engineer_right" ${busy ? "disabled" : ""}>Engineer was right</button>
+        <button type="button" class="vbtn ghost" data-verdict="neither" ${busy ? "disabled" : ""}>Neither</button>
+        <div class="rebuild-form"><input placeholder="Why? With 'Neither', say what you want instead"></div></form>
+      <p style="color:var(--muted);font-size:12px;margin:6px 0 0">Bar Raiser was right → its fix is applied and only the affected parts are rebuilt. Engineer was right → kept as is. Neither → your note is applied as the change (or just recorded if empty). Every verdict is saved to memory.</p>`
+      }</div>`,
+          )
+          .join("");
+        // (2) what isn't met yet
+        const gaps = r.gaps || [];
+        const crit = (r.acceptance_criteria || []).filter(
+          (c) => c.status && c.status !== "met",
+        );
+        const critRows = crit
+          .map(
+            (
+              c,
+            ) => `<tr><td class="mono">${esc(c.id)}</td><td>${esc(c.criterion)}${c.source === "improvement" ? ` <span class="badge warn">from your feedback</span>` : ""}<br><span style="color:var(--muted);font-size:12px">${esc(c.why)}</span></td>
+      <td><span class="badge">${esc(c.priority)}</span></td><td class="crit-${esc(c.status)}"><b>${esc(c.status.replace("_", " "))}</b><br><span style="color:var(--muted);font-size:12px">${esc(c.note || "")}</span></td></tr>`,
+          )
+          .join("");
+        // (3) Bar Raiser review (verdict, history, full challenge table)
+        const challenges = reviews.filter(
+          (x) => x.verdict !== "approve" || x.after_logbook === "withdrawn",
+        );
+        const approved = reviews.length - challenges.length;
+        const rows = challenges
+          .map(
+            (
+              x,
+            ) => `<tr><td class="mono">${x.round}</td><td class="mono">${esc(x.key)}@v${x.version}</td><td>${verdictBadge(x)}</td>
+    <td class="flow"><div><span class="lbl">A · blind review</span>${x.blind_severity ? `<span class="badge">${esc(x.blind_severity)}</span> ` : ""}${esc(x.notes)}${x.suggested_fix ? ` <span style="color:var(--muted)"><b>Fix:</b> ${esc(x.suggested_fix)}</span>` : ""}</div>
+      ${x.after_logbook ? `<div><span class="lbl">B · after logbook</span><span class="badge ${x.after_logbook === "withdrawn" ? "ok" : x.after_logbook === "downgraded" ? "" : "warn"}">${esc(x.after_logbook)}</span> ${esc(x.after_logbook_note)}</div>` : ""}
+      ${x.engineer_response ? `<div><span class="lbl">C · engineer</span><span class="badge ${x.engineer_response === "accept" ? "ok" : "err"}">${esc(x.engineer_response)}</span> ${esc(x.engineer_reason)}</div>` : ""}
+      ${x.user_verdict ? `<div><span class="lbl">D · your verdict</span><span class="badge ok">${esc(x.user_verdict.replaceAll("_", " "))}</span> ${esc(x.user_reason)}</div>` : ""}</td>
+    <td>${resBadge(x.resolution)}</td></tr>`,
+          )
+          .join("");
+        const rounds = (r.review_rounds || [])
+          .map(
+            (x) =>
+              `<tr><td class="mono">${x.round}</td><td>${esc(x.group)}</td><td>${x.reviewed}</td><td>${x.challenges}</td><td><span class="badge ${x.risk_level === "high" ? "err" : x.risk_level === "medium" ? "warn" : "ok"}">${esc(x.risk_level)}</span></td><td style="color:var(--muted)">${esc(x.summary)}</td></tr>`,
+          )
+          .join("");
+        const rebuilds = (r.rebuilds || [])
+          .map(
+            (b) =>
+              `<p style="margin:4px 0"><span class="badge ${b.source === "user" ? "" : "warn"}">${b.source === "user" ? "you" : "bar raiser"}</span> on <code>${esc(b.targets.map((t) => t.key).join(", "))}</code>: re-ran ${esc(b.stages.join(" → "))}; ${b.changed.length} changed, ${b.retired.length} retired</p>`,
+          )
+          .join("");
+        const improvements = (r.improvements || [])
+          .map(
+            (i) =>
+              `<div style="color:var(--muted);font-size:12px">↻ ${esc(i.feedback)} → <code>${esc((i.targets || []).join(", "))}</code>${i.lesson ? ` · Bar Raiser: ${esc(i.lesson)}` : ""}</div>`,
+          )
+          .join("");
+        const vs = r.review_status;
+        return `<div class="panel"><h2>Bar Raiser: <span class="big-verdict" style="color:${vs === "approved" ? "var(--ok)" : vs === "unresolved" ? "var(--err)" : "var(--warn)"}">${esc(VERDICT_TEXT[vs] || vs)}</span>
+        <span class="badge">${esc(r.models?.bar_raiser_label || r.providers?.reviewer || "")}</span></h2>
+      ${reviewCounts(dis)}
+    </div>
+    <h3 class="sec">Needs your judgement ${dis.filter((d) => !d.review.user_verdict).length ? `<span class="tab-count">${dis.filter((d) => !d.review.user_verdict).length}</span>` : ""}</h3>
+    ${dis.length ? `<p style="color:var(--muted);margin:0 0 10px">The engineer kept the final say and rejected these challenges. Pick a side; your verdict is saved to memory and cited on similar projects.</p>${disHtml}` : `<div class="panel" style="color:var(--muted)">Nothing to judge: the engineer and the Bar Raiser agree.</div>`}
+    <h3 class="sec">Not yet met</h3>
+    <div class="panel">${gaps.length ? `<ul style="margin:0 0 8px">${gaps.map((g) => `<li>${esc(g)}</li>`).join("")}</ul>` : `<p style="color:var(--ok);margin:0 0 8px">No gaps: every must-have criterion is met and verified.</p>`}
+      ${critRows ? `<table><tr><th>ID</th><th>Criterion</th><th>Priority</th><th>Status</th></tr>${critRows}</table>` : ""}</div>
+    <h3 class="sec">Improve this project</h3>
+    <div class="panel">${improvements}
+      <form class="rebuild-form" id="improve-inline"><input placeholder="Not happy? Say what to improve, e.g. 'use a 16x2 I2C LCD instead of the OLED'" ${busy ? "disabled" : ""}><button ${busy ? "disabled" : ""}>Improve project</button></form>
+      <p style="color:var(--muted);font-size:12px;margin:6px 0 0">Only the decisions your request touches are rebuilt; everything else keeps its version.</p></div>
+    <h3 class="sec">Bar Raiser review details</h3>
+    <div class="panel"><p style="color:var(--muted)">An independent reviewer. <b>A</b>: reviews results only, against its acceptance criteria. <b>B</b>: then reads the builder's rationale and keeps, downgrades or withdraws. <b>C</b>: the engineer accepts (→ partial rebuild, re-reviewed) or rejects with a reason. <b>D</b>: you judge rejected high/medium points. ${approved} approvals, ${challenges.length} challenges.</p>
+      <table><tr><th>Round</th><th>Decision</th><th>Verdict</th><th>Notes</th><th>Status</th></tr>${rows || `<tr><td colspan="5">No challenges yet</td></tr>`}</table></div>
+    <div class="grid2"><div class="panel"><h2>Review rounds</h2><table><tr><th>Round</th><th>Group</th><th>Reviewed</th><th>Challenged</th><th>Risk</th><th>Summary</th></tr>${rounds || `<tr><td colspan="6">Not reviewed yet</td></tr>`}</table></div>
+      <div class="panel"><h2>Rebuilds</h2>${rebuilds || `<p style="color:var(--muted)">No rebuilds yet.</p>`}</div></div>`;
+      }
+
+      const OTHER_TABS = [
+        "Decision log",
+        "Agent activity",
+        "Dependency graph",
+        "Memory",
+        "Storage",
+      ];
+      function otherTab() {
+        const pills = `<div class="pills">${OTHER_TABS.map((t) => `<button type="button" class="pill ${t === otherSub ? "active" : ""}" data-o="${t}" aria-pressed="${t === otherSub}">${t}</button>`).join("")}</div>`;
+        let inner = "";
+        if (otherSub === "Decision log") {
+          const rows = data.decisions
+            .slice()
+            .sort((x, y) => STAGES.indexOf(x.stage) - STAGES.indexOf(y.stage))
+            .map((d) => {
+              const stale = data.stale.includes(d.key);
+              const main = `<tr class="click ${openKey === d.key ? "hl" : ""}" data-k="${esc(d.key)}"><td class="mono stage-${d.stage}">${esc(d.key)}</td><td>${esc(d.title)}</td>
+        <td class="mono">v${d.version}${stale ? ` <span class="badge warn">stale</span>` : ""}</td><td>${confBar(d.confidence)}</td>
+        <td><div class="deps">${d.depends_on.map((x) => `<span class="dep" data-k="${esc(x.key)}">${esc(x.key)}@${x.version}</span>`).join("")}</div></td>
+        <td>${srcLinks(d.evidence)}${d.evidence.some((e) => !e.url) ? ` <span class="badge">${esc(d.evidence.find((e) => !e.url).source)}</span>` : ""}</td>
+        <td>${verdictBadge(d.review)}</td></tr>`;
+              if (openKey !== d.key) return main;
+              const alts = d.alternatives
+                .map(
+                  (x) =>
+                    `<li><b>${esc(x.option)}</b>: ${esc(x.reason_rejected)}</li>`,
+                )
+                .join("");
+              const busy = data.run.status === "running";
+              return (
+                main +
+                `<tr class="detail"><td colspan="7"><div><span class="k">Rationale:</span> ${esc(d.rationale)}</div>
+        ${alts ? `<div><span class="k">Rejected alternatives:</span><ul>${alts}</ul></div>` : ""}
+        <div><span class="k">Choice:</span> <code>${esc(JSON.stringify(d.choice).slice(0, 600))}</code></div>
+        ${d.evidence.map((e) => `<div>• <b>${esc(e.source)}</b> ${e.url ? `<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title || e.url)}</a>` : ""} <span>${esc((e.snippet || "").slice(0, 300))}</span></div>`).join("")}
+        <div><span class="k">Author:</span> ${esc(d.author)} · <span class="k">Status:</span> ${esc(d.status)}${d.trigger ? ` · <span class="k">Created by rebuild:</span> ${esc(d.trigger.source)} on <code>${esc(d.trigger.key)}</code>` : ""}</div>
+        <div><span class="k">Bar Raiser:</span> ${verdictBadge(d.review)} ${esc(d.review?.notes || "")}${d.review?.suggested_fix ? ` <b>Fix:</b> ${esc(d.review.suggested_fix)}` : ""}</div>
+        <div class="history" data-k="${esc(d.key)}"></div>
+        <div class="downstream" data-k="${esc(d.key)}"></div>
+        <form class="rebuild-form" data-k="${esc(d.key)}"><input placeholder="Change this decision, e.g. 'use a 16x2 I2C LCD instead'" ${busy ? "disabled" : ""}><button ${busy ? "disabled" : ""}>Rebuild from here</button></form></td></tr>`
+              );
+            })
+            .join("");
+          inner = `<div class="panel"><h2>Decision log <span class="badge">${data.decisions.length} active</span></h2>
+      <table><tr><th>Key</th><th>Decision</th><th>Ver</th><th>Conf</th><th>Depends on</th><th>Evidence</th><th>Bar Raiser</th></tr>${rows}</table></div>`;
+        } else if (otherSub === "Agent activity") {
+          const ev = data.run.events
+            .slice()
+            .reverse()
+            .map(
+              (e) =>
+                `<div class="${e.level}">${new Date(e.at).toLocaleTimeString()} <span class="stage-${e.stage}">[${esc(e.stage)}]</span> ${esc(e.message)}</div>`,
+            )
+            .join("");
+          inner = `${subsection("Build progress", stepper())}<div class="panel"><h2>Agent activity</h2><div class="events" style="max-height:600px">${ev}</div>
+      <p style="color:var(--muted);font-size:12px">Run ${esc(data.run.id)} · ${data.decisions.length} active decisions · ${data.stale.length} stale</p></div>`;
+        } else if (otherSub === "Storage") {
+          inner = `<div class="panel"><h2>Where the data lives</h2><div id="storage-box"><p style="color:var(--muted)">Reading from the database…</p></div></div>`;
+        } else if (otherSub === "Dependency graph") {
+          inner = `<div class="panel"><h2>Decision dependency graph
+        <label style="float:right;font-size:13px;font-weight:400;color:var(--muted)"><input type="checkbox" id="dep-all" ${depAll ? "checked" : ""}> show every pin and cart line</label></h2>
+      <p style="color:var(--muted)">Arrows point from a decision to the decisions built directly on it (left to right, colour = stage). Changing a box invalidates everything downstream of it: that is what partial rebuilds re-run.</p>${depLegend()}
+      <div class="mermaid-wrap dep"><pre class="mermaid">${esc(depGraph())}</pre></div></div>`;
+        } else {
+          const used = new Set((data.run.precedents || []).map((p) => p.id));
+          const card = (
+            p,
+          ) => `<div class="panel" style="${used.has(p.id) ? "border-color:var(--ok)" : ""}">
+        <h2>${esc(p.project_name || "Project")} ${used.has(p.id) ? `<span class="badge ok">used by this run · ${data.run.precedents.find((x) => x.id === p.id).score.toFixed(2)}</span>` : ""}
+          <span class="badge">${esc(p.review_status)}</span> <span class="badge">used ${p.uses || 0}×</span>
+          ${p.source_run_id === data.run.id ? `<span class="badge warn">this run</span>` : ""}
+          <a style="float:right;font-size:12px;cursor:pointer" class="forget" data-id="${p.id}">forget</a></h2>
+        <p style="margin:4px 0"><i>"${esc(p.prompt)}"</i></p>
+        <p style="color:var(--muted);margin:4px 0"><b>Parts:</b> ${esc((p.parts || []).map((x) => x.name).join(", "))}</p>
+        ${(p.challenges || [])
+          .filter((c) => c.severity !== "low")
+          .map(
+            (c) =>
+              `<p style="margin:4px 0">${verdictBadge({ verdict: "challenge", severity: c.severity })} <code>${esc(c.key)}</code> ${esc(c.notes)} ${resBadge(c.resolution)}</p>`,
+          )
+          .join("")}
+      </div>`;
+          inner = `<div class="panel"><h2>Agent memory <span class="badge">${esc(data.run.precedent_search || "")}</span></h2>
+        <p style="color:var(--muted)">Every project the Bar Raiser approves is saved as a precedent: what was built and every problem the reviewer caught. New runs search it by meaning (vector similarity) and pass similar projects, and their mistakes, to both the builder and the Bar Raiser. Green = used by this run.</p>
+        ${(data.run.precedents || []).length ? data.run.precedents.map((p) => `<p style="margin:4px 0"><span class="badge ok">${p.score.toFixed(2)}</span> this run learned from <i>"${esc(p.prompt)}"</i></p>`).join("") : `<p style="color:var(--muted);margin:4px 0">This run found no similar past projects.</p>`}</div>
+      ${library.map(card).join("") || `<div class="empty">Memory is empty. Finish an approved run to add the first precedent.</div>`}`;
+        }
+        return pills + inner;
+      }
+
+      let storageBusy = false;
+      async function loadStorage() {
+        const box = $("#storage-box");
+        if (!box || storageBusy) return;
+        storageBusy = true;
+        let s;
+        try {
+          s = await api(`/api/storage?run_id=${encodeURIComponent(current || "")}`);
+        } catch (e) {
+          box.innerHTML = `<p style="color:var(--err)">Couldn't read storage status: ${esc(e.message)}</p>`;
+          storageBusy = false;
+          return;
+        }
+        storageBusy = false;
+        const box2 = $("#storage-box");
+        if (!box2) return;
+        const NAMES = { runs: "Projects", decisions: "Decision log (every version)", artifacts: "Outputs (parts, wiring, code…)",
+          reviews: "Bar Raiser review rounds", precedents: "Agent memory", search_cache: "Web search cache", explanations: "Code explanations" };
+        if (s.backend !== "databricks") {
+          box2.innerHTML = `<div class="store-head"><b>${esc(s.backend)}</b></div>
+            <p style="color:var(--muted)">Not connected to Databricks: set DATABRICKS_HOST, DATABRICKS_HTTP_PATH and DATABRICKS_TOKEN in .env and restart the server.</p>
+            <table><tr><th>What</th><th class="num">Rows</th></tr>${s.tables.map((t) => `<tr><td>${esc(NAMES[t.collection] || t.collection)}</td><td class="num">${t.rows}</td></tr>`).join("")}</table>`;
+          return;
+        }
+        const ago = s.last_sync_seconds_ago;
+        const sync = s.last_error
+          ? `<span class="dot bad"></span>Last write failed, retrying: ${esc(s.last_error)}`
+          : s.pending
+            ? `<span class="dot wait"></span>${s.pending} change${s.pending === 1 ? "" : "s"} being written…`
+            : `<span class="dot"></span>All changes saved${ago != null ? ` · last write ${ago < 60 ? Math.round(ago) + " s" : Math.round(ago / 60) + " min"} ago` : ""} · ${s.rows_written} row writes since the server started`;
+        const total = s.tables.reduce((n, t) => n + (t.rows || 0), 0);
+        box2.innerHTML = `<div class="store-head"><b style="font-size:15px">Stored in Databricks</b>
+            <span class="badge ${s.live ? "ok" : "warn"}">${s.live ? "live counts from Databricks" : "Databricks unreachable"}</span>
+            <span class="badge">${esc(s.catalog)}.${esc(s.schema)}</span></div>
+          <p class="store-sync">${sync}</p>
+          ${s.live_error ? `<p style="color:var(--warn)">${esc(s.live_error)}</p>` : ""}
+          <p style="color:var(--muted)">Every decision, review, output and memory is a row in a Delta table, one table per kind of record. Each new version of a decision is a new row, so the full history of every choice and every partial rebuild is queryable in Databricks SQL. ${total} rows in total.</p>
+          <table><tr><th>What</th><th>Delta table</th><th class="num">All projects</th><th class="num">This project</th></tr>
+          ${s.tables.map((t) => `<tr><td>${esc(NAMES[t.collection] || t.collection)}</td><td class="mono">${esc(t.table)}</td><td class="num">${t.rows ?? "–"}</td><td class="num">${t.rows_this_run ?? "–"}</td></tr>`).join("")}</table>
+          <h3 class="sec">Try it in the Databricks SQL editor</h3>
+          ${s.queries.map((q, i) => `<div class="sql-card"><div class="sql-top"><b>${esc(q.title)}</b><button type="button" class="ghost sql-copy" data-i="${i}">Copy</button></div><pre>${esc(q.sql)}</pre></div>`).join("")}`;
+        box2.querySelectorAll(".sql-copy").forEach((b) => (b.onclick = async () => {
+          try {
+            await navigator.clipboard.writeText(s.queries[+b.dataset.i].sql);
+            b.textContent = "Copied";
+          } catch (e) {
+            b.textContent = "Select and copy";
+          }
+          setTimeout(() => (b.textContent = "Copy"), 1500);
+        }));
+      }
+
+      async function startImprove(feedback, runId) {
+        const { questions } = await api(
+          `/api/runs/${runId}/improve/questions`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ feedback }),
+          },
+        );
+        const go = async (clar) => {
+          await api(`/api/runs/${runId}/improve`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ feedback, clarifications: clar }),
+          });
+          $("#qa").innerHTML = "";
+          tab = "Overview";
+          open(runId);
+        };
+        if (!questions.length) return go([]);
+        askQuestions(questions, go);
+      }
+
+      function askQuestions(questions, go) {
+        $("#composer").open = true;
+        $("#qa").innerHTML =
+          `<div class="qa"><b>Before I start, ${questions.length === 1 ? "one question" : "two questions"}:</b>
+    ${questions.map((q, i) => `<label for="answer-${i}">${esc(q)}</label><input id="answer-${i}" type="text" data-i="${i}" placeholder="Your answer (or leave blank)">`).join("")}
+    <div class="row"><button id="qa-go">Start</button><button class="ghost" id="qa-skip">Skip, make assumptions</button></div></div>`;
+        $("#qa").scrollIntoView({ block: "center", behavior: "smooth" });
+        $("#qa input")?.focus({ preventScroll: true });
+        const collect = () =>
+          questions.map((q, i) => ({
+            q,
+            a: document.querySelector(`#qa input[data-i="${i}"]`).value.trim(),
+          }));
+        $("#qa-go").onclick = () => go(collect());
+        $("#qa-skip").onclick = () => go([]);
+      }
+
+      // ---------------------------------------------------------------- interactive firmware view
+      const CPP_KW = new Set(
+        "void int long unsigned bool char float double const static return if else for while do switch case break continue true false String auto struct class include define".split(
+          " ",
+        ),
+      );
+      function hlLine(raw) {
+        let out = "",
+          i = 0;
+        const cmt = raw.indexOf("//");
+        let code = raw,
+          comment = "";
+        // only treat // as a comment if it's not inside a string
+        if (cmt >= 0 && (raw.slice(0, cmt).split('"').length - 1) % 2 === 0) {
+          code = raw.slice(0, cmt);
+          comment = raw.slice(cmt);
+        }
+        const re =
+          /("(?:[^"\\]|\\.)*")|(#\w+)|\b(PIN_[A-Z0-9_]+|GPIO\d+)\b|\b(\d+(?:\.\d+)?)\b|\b([A-Za-z_]\w*)(?=\s*\()|\b([A-Za-z_]\w*)\b/g;
+        let m,
+          last = 0;
+        while ((m = re.exec(code))) {
+          out += esc(code.slice(last, m.index));
+          const t = esc(m[0]);
+          if (m[1]) out += `<span class="tk-s">${t}</span>`;
+          else if (m[2]) out += `<span class="tk-k">${t}</span>`;
+          else if (m[3]) out += `<span class="tk-p">${t}</span>`;
+          else if (m[4]) out += `<span class="tk-n">${t}</span>`;
+          else if (m[5])
+            out += CPP_KW.has(m[5])
+              ? `<span class="tk-k">${t}</span>`
+              : `<span class="tk-f">${t}</span>`;
+          else out += CPP_KW.has(m[6]) ? `<span class="tk-k">${t}</span>` : t;
+          last = m.index + m[0].length;
+        }
+        out += esc(code.slice(last));
+        return (
+          out + (comment ? `<span class="tk-c">${esc(comment)}</span>` : "")
+        );
+      }
+      function codeLines(code, walk) {
+        const blocks = walk?.blocks || [],
+          steps = walk?.steps || [];
+        return code
+          .split("\n")
+          .map((ln, i) => {
+            const n = i + 1;
+            const bi = blocks.findIndex((b) => n >= b.start && n <= b.end);
+            const inStep = steps.some((s) => n >= s.start && n <= s.end);
+            return `<div class="ln ${bi % 2 === 1 ? "b1" : ""} ${inStep ? "st" : ""}" data-n="${n}"><span class="no">${n}</span><span class="src">${hlLine(ln) || " "}</span></div>`;
+          })
+          .join("");
+      }
+      function flowWalk() {
+        return (
+          data?.artifacts?.flow_diagram?.content?.walkthrough || {
+            blocks: [],
+            steps: [],
+            nodes: {},
+          }
+        );
+      }
+      function overlaps(x, a, b) {
+        return x.start <= b && x.end >= a;
+      }
+      function selectLines(a, b, scroll) {
+        codeSel = { a: Math.min(a, b), b: Math.max(a, b) };
+        paintSelection();
+        if (scroll)
+          document
+            .querySelector(`#code .ln[data-n="${codeSel.a}"]`)
+            ?.scrollIntoView({ block: "center", behavior: "smooth" });
+        renderExplain();
+      }
+      function paintSelection() {
+        document.querySelectorAll("#code .ln").forEach((el) => {
+          const n = Number(el.dataset.n);
+          el.classList.toggle(
+            "sel",
+            !!codeSel && n >= codeSel.a && n <= codeSel.b,
+          );
+        });
+        const w = flowWalk();
+        const hot = new Set(
+          codeSel
+            ? w.steps
+                .filter((s) => overlaps(s, codeSel.a, codeSel.b))
+                .map((s) => s.node_id)
+            : [],
+        );
+        let first = null;
+        document.querySelectorAll("#flow svg g.node").forEach((g) => {
+          const on = hot.has(nodeIdOf(g));
+          g.classList.toggle("hl-node", on);
+          if (on && !first) first = g;
+        });
+        const box = document.querySelector("#flow");
+        if (first && box) {
+          // scroll the diagram (not the page) so the highlighted step is visible
+          const r = first.getBoundingClientRect(),
+            br = box.getBoundingClientRect();
+          if (r.top < br.top || r.bottom > br.bottom)
+            box.scrollTop +=
+              r.top - br.top - box.clientHeight / 2 + r.height / 2;
+        }
+      }
+      // Mermaid 11 node ids look like "mermaid-<svgid>-flowchart-<nodeId>-<n>" (older versions: "flowchart-<nodeId>-<n>")
+      function nodeIdOf(g) {
+        const m = (g.id || "").match(/(?:^|-)flowchart-(.+)-\d+$/);
+        return m ? m[1] : null;
+      }
+      function renderExplain() {
+        const box = document.querySelector("#explain");
+        if (!box) return;
+        const w = flowWalk();
+        if (!codeSel) {
+          box.innerHTML = `<h3>What does this code do?</h3><p class="muted">Click any line to see an explanation. Or jump to a section:</p>
+      ${
+        w.blocks
+          .map(
+            (b) =>
+              `<div class="blk-item" style="cursor:pointer" data-a="${b.start}" data-b="${b.end}"><b>${esc(b.name)}</b> <span class="muted">lines ${b.start}-${b.end}</span><br>${esc(b.summary || "")}</div>`,
+          )
+          .join("") ||
+        `<p class="muted">No walkthrough for this version yet; select lines and use “Explain in depth”.</p>`
+      }`;
+          box
+            .querySelectorAll(".blk-item")
+            .forEach(
+              (el) =>
+                (el.onclick = () =>
+                  selectLines(
+                    Number(el.dataset.a),
+                    Number(el.dataset.b),
+                    true,
+                  )),
+            );
+          return;
+        }
+        const { a, b } = codeSel;
+        const steps = w.steps.filter((s) => overlaps(s, a, b));
+        const blocks = w.blocks.filter((x) => overlaps(x, a, b));
+        const nodes = w.nodes || {};
+        const key = `${a}-${b}`,
+          deep = explainCache[current + key];
+        box.innerHTML = `<h3>${a === b ? `Line ${a}` : `Lines ${a}–${b}`} <a class="muted" style="float:right;font-size:12px;cursor:pointer" id="clear-sel">clear</a></h3>
+    ${steps.map((s) => `<div class="step-item" data-a="${s.start}" data-b="${s.end}"><b>Flow step: ${esc(nodes[s.node_id] || s.node_id)}</b> <span class="muted">(lines ${s.start}-${s.end})</span><br>${esc(s.explanation)}</div>`).join("")}
+    ${blocks.map((x) => `<div class="blk-item"><b>${esc(x.name)}</b> <span class="muted">lines ${x.start}-${x.end}</span><br><i>${esc(x.summary || "")}</i><br>${esc(x.explanation || "")}</div>`).join("")}
+    ${blocks.length > 1 ? `<p class="muted" style="font-size:12px">Your selection spans ${blocks.length} sections.</p>` : ""}
+    <div id="deep">${
+      deep
+        ? deepHtml(deep)
+        : `<button id="explain-btn">Explain ${a === b ? "this line" : "these lines"} in depth</button>
+      <span class="muted" style="font-size:12px"> asks Claude about exactly this selection (cached)</span>`
+    }</div>`;
+        box.querySelector("#clear-sel").onclick = () => {
+          codeSel = null;
+          paintSelection();
+          renderExplain();
+        };
+        box
+          .querySelectorAll(".step-item")
+          .forEach(
+            (el) =>
+              (el.onclick = () =>
+                selectLines(Number(el.dataset.a), Number(el.dataset.b), true)),
+          );
+        const btn = box.querySelector("#explain-btn");
+        if (btn)
+          btn.onclick = async () => {
+            btn.disabled = true;
+            btn.textContent = "Thinking…";
+            try {
+              const r = await api(`/api/runs/${current}/explain`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ start: a, end: b }),
+              });
+              explainCache[current + key] = r;
+              if (codeSel && codeSel.a === a && codeSel.b === b)
+                box.querySelector("#deep").innerHTML = deepHtml(r);
+            } catch (err) {
+              btn.disabled = false;
+              btn.textContent = "Try again";
+              box
+                .querySelector("#deep")
+                .insertAdjacentHTML(
+                  "beforeend",
+                  `<p style="color:var(--err)">${esc(err.message)}</p>`,
+                );
+            }
+          };
+      }
+      function deepHtml(r) {
+        return `<div class="deep"><b>In depth</b>${r.cached ? ` <span class="badge">cached</span>` : ""}<p style="margin:6px 0">${esc(r.explanation)}</p>
+    ${(r.hardware || []).map((h) => `<span class="badge ok">${esc(h.pin)}</span> <span class="muted">${esc(h.what)}</span><br>`).join("")}
+    ${r.watch_out ? `<p style="margin:6px 0;color:var(--warn)">⚠ ${esc(r.watch_out)}</p>` : ""}</div>`;
+      }
+      function wireFirmware() {
+        const view = document.querySelector("#code");
+        if (!view) return;
+        let dragging = false;
+        view.onmousedown = (e) => {
+          const ln = e.target.closest(".ln");
+          if (!ln) return;
+          const n = Number(ln.dataset.n);
+          if (e.shiftKey && codeAnchor) {
+            selectLines(codeAnchor, n);
+            return;
+          }
+          codeAnchor = n;
+          dragging = true;
+          codeSel = { a: n, b: n };
+          paintSelection();
+        };
+        view.onmouseover = (e) => {
+          if (!dragging) return;
+          const ln = e.target.closest(".ln");
+          if (!ln) return;
+          codeSel = {
+            a: Math.min(codeAnchor, Number(ln.dataset.n)),
+            b: Math.max(codeAnchor, Number(ln.dataset.n)),
+          };
+          paintSelection();
+        };
+        document.onmouseup = () => {
+          if (dragging) {
+            dragging = false;
+            renderExplain();
+          }
+        };
+        const copy = document.querySelector("#copy-code");
+        if (copy)
+          copy.onclick = async () => {
+            try {
+              await navigator.clipboard.writeText(
+                data.artifacts.firmware.content.code,
+              );
+              copy.textContent = "Copied!";
+            } catch (e) {
+              copy.textContent = "Copy failed";
+            }
+          };
+        if (codeSel) paintSelection();
+        renderExplain();
+      }
+      function wireFlow() {
+        const w = flowWalk();
+        document.querySelectorAll("#flow svg g.node").forEach((g) => {
+          const id = nodeIdOf(g);
+          const st = w.steps.find((s) => s.node_id === id);
+          if (!st) {
+            g.style.opacity = 0.75;
+            return;
+          }
+          g.onclick = () => selectLines(st.start, st.end, true);
+          g.insertAdjacentHTML(
+            "afterbegin",
+            `<title>Lines ${st.start}-${st.end}: click to show the code</title>`,
+          );
+        });
+        paintSelection();
+      }
+
+      // Neater graph: pins grouped per part, cart lines grouped, and only *direct* links drawn. If A already leads to
+      // C through B, the A → C arrow is dropped (transitive reduction): every dependency is still implied by a path.
+      // Tick "show every pin and cart line" for the full, unreduced detail.
+      const STAGE_TITLES = {
+        requirements: "Requirements",
+        parts: "Parts",
+        wiring: "Wiring",
+        procurement: "Cart",
+        firmware: "Firmware",
+        diagram: "Code flow",
+        guide: "Build guide",
+      };
+      const STAGE_COLORS = {
+        requirements: "#b9a2ff",
+        parts: "#7cb8ff",
+        wiring: "#4ade9a",
+        procurement: "#3ee6d0",
+        firmware: "#fbbf24",
+        diagram: "#f78fc8",
+        guide: "#e5e7eb",
+      };
+      function depGraph() {
+        const safe = (k) => "n_" + k.replace(/[^A-Za-z0-9]/g, "_");
+        const group = (key) => {
+          if (depAll) return key;
+          if (key.startsWith("pin.")) return "pin." + key.split(".")[1] + ".*";
+          if (key.startsWith("cart.") && key !== "cart.total") return "cart.*";
+          return key;
+        };
+        const nodes = new Map();
+        for (const d of data.decisions) {
+          const g = group(d.key);
+          const n = nodes.get(g) || { stage: d.stage, count: 0 };
+          n.count++;
+          nodes.set(g, n);
+        }
+        const adj = new Map([...nodes.keys()].map((k) => [k, new Set()]));
+        for (const d of data.decisions)
+          for (const x of d.depends_on) {
+            const a = group(x.key),
+              b = group(d.key);
+            if (a !== b && nodes.has(a) && nodes.has(b)) adj.get(a).add(b);
+          }
+        if (!depAll) {
+          // transitive reduction: drop a→b when b is reachable from a through another child
+          const reach = new Map();
+          const reachable = (k, seen = new Set()) => {
+            if (reach.has(k)) return reach.get(k);
+            const out = new Set();
+            for (const c of adj.get(k)) {
+              if (seen.has(c)) continue;
+              seen.add(c);
+              out.add(c);
+              for (const r of reachable(c, seen)) out.add(r);
+            }
+            reach.set(k, out);
+            return out;
+          };
+          for (const [a, kids] of adj)
+            for (const b of [...kids]) {
+              if ([...kids].some((c) => c !== b && reachable(c).has(b)))
+                kids.delete(b);
+            }
+        }
+        const linked = new Set();
+        for (const [a, kids] of adj)
+          if (kids.size) {
+            linked.add(a);
+            kids.forEach((b) => linked.add(b));
+          }
+        const label = (g, n) => {
+          if (g.startsWith("pin.") && g.endsWith(".*"))
+            return `${g.split(".")[1]} pins (${n.count})`;
+          if (g === "cart.*") return `cart lines (${n.count})`;
+          return g
+            .replace(/^req\.feature\./, "feature: ")
+            .replace(/^req\./, "")
+            .replace(/^part\./, "")
+            .replace(/^cart\./, "cart ")
+            .replace(/^fw\./, "firmware ")
+            .replace(/^diag\./, "diagram ")
+            .replace(/^wiring\./, "wiring ")
+            .replace(/^guide\./, "guide ");
+        };
+        const L = ["flowchart LR"];
+        for (const st of STAGES)
+          for (const [g, n] of nodes)
+            if (n.stage === st && (depAll || linked.has(g)))
+              L.push(
+                `  ${safe(g)}["${label(g, n).replace(/"/g, "")}"]:::${st}`,
+              );
+        for (const [a, kids] of adj)
+          for (const b of kids)
+            if (depAll || (linked.has(a) && linked.has(b)))
+              L.push(`  ${safe(a)} --> ${safe(b)}`);
+        L.push(
+          "  classDef requirements fill:#3b2f6e,stroke:#b9a2ff,stroke-width:2px,color:#ffffff",
+          "  classDef parts fill:#1e3a66,stroke:#7cb8ff,stroke-width:2px,color:#ffffff",
+          "  classDef wiring fill:#145040,stroke:#4ade9a,stroke-width:2px,color:#ffffff",
+          "  classDef procurement fill:#11504c,stroke:#3ee6d0,stroke-width:2px,color:#ffffff",
+          "  classDef firmware fill:#5a420f,stroke:#fbbf24,stroke-width:2px,color:#ffffff",
+          "  classDef diagram fill:#5c1f45,stroke:#f78fc8,stroke-width:2px,color:#ffffff",
+          "  classDef guide fill:#2a2f3a,stroke:#e5e7eb,stroke-width:2px,color:#ffffff",
+          "  classDef review fill:#5e3014,stroke:#fdab6a,stroke-width:2px,color:#ffffff",
+        );
+        return L.join("\n");
+      }
+      function depLegend() {
+        return `<div class="dep-legend">${STAGES.map((s) => `<span><i style="background:${STAGE_COLORS[s]}"></i>${STAGE_TITLES[s]}</span>`).join("")}</div>`;
+      }
+
+      function wire() {
+        document.querySelectorAll(".checklist input").forEach(
+          (cb) =>
+            (cb.onchange = () => {
+              if (cb.checked) ticked.add(cb.dataset.w);
+              else ticked.delete(cb.dataset.w);
+              cb.closest("label").classList.toggle("done", cb.checked);
+              const b = document.querySelector(".guide .checklist-count");
+              if (b)
+                b.textContent = `${document.querySelectorAll(".checklist input:checked").length}/${document.querySelectorAll(".checklist input").length}`;
+            }),
+        );
+        if (tab === "Firmware") wireFirmware();
+        document.querySelectorAll(".goto").forEach(
+          (el) =>
+            (el.onclick = () => {
+              tab = el.dataset.t;
+              lastSig = "";
+              render();
+              window.scrollTo(0, 0);
+            }),
+        );
+        document.querySelectorAll(".pill").forEach(
+          (el) =>
+            (el.onclick = () => {
+              otherSub = el.dataset.o;
+              lastSig = "";
+              render();
+            }),
+        );
+        const da = document.querySelector("#dep-all");
+        if (da)
+          da.onchange = () => {
+            depAll = da.checked;
+            lastSig = "";
+            render();
+          };
+        document.querySelectorAll("tr.click").forEach(
+          (el) =>
+            (el.onclick = (e) => {
+              if (
+                e.target.classList.contains("dep") ||
+                e.target.tagName === "A" ||
+                e.target.closest(".rebuild-form")
+              )
+                return;
+              openKey = openKey === el.dataset.k ? null : el.dataset.k;
+              lastSig = "";
+              render();
+            }),
+        );
+        document.querySelectorAll(".dep").forEach(
+          (el) =>
+            (el.onclick = () => {
+              openKey = el.dataset.k;
+              lastSig = "";
+              render();
+              document
+                .querySelector(`tr[data-k="${CSS.escape(el.dataset.k)}"]`)
+                ?.scrollIntoView({ block: "center" });
+            }),
+        );
+        document.querySelectorAll(".history").forEach(async (el) => {
+          const h = await api(
+            `/api/runs/${data.run.id}/decisions/${encodeURIComponent(el.dataset.k)}/history`,
+          );
+          if (h.length > 1)
+            el.innerHTML =
+              `<span class="k">History:</span><div class="hist">` +
+              h
+                .map(
+                  (v) =>
+                    `v${v.version} [${esc(v.status)}] ${esc(v.title)}${v.trigger ? ` ← ${esc(v.trigger.source)}: ${esc(v.trigger.note.slice(0, 120))}` : ""}`,
+                )
+                .join("<br>") +
+              `</div>`;
+        });
+        document.querySelectorAll(".forget").forEach(
+          (el) =>
+            (el.onclick = async () => {
+              if (!confirm("Remove this project from the agent's memory?"))
+                return;
+              await api(`/api/precedents/${el.dataset.id}`, {
+                method: "DELETE",
+              });
+              library = await api(`/api/precedents`);
+              lastSig = "";
+              render();
+            }),
+        );
+        document.querySelectorAll(".rebuild-form").forEach(
+          (f) =>
+            (f.onsubmit = async (e) => {
+              e.preventDefault();
+              const instruction = f.querySelector("input").value.trim();
+              if (!instruction) return;
+              f.querySelector("button").disabled = true;
+              try {
+                await api(`/api/runs/${data.run.id}/rebuild`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ key: f.dataset.k, instruction }),
+                });
+                tab = "Overview";
+                open(data.run.id);
+              } catch (err) {
+                alert(err.message);
+                f.querySelector("button").disabled = false;
+              }
+            }),
+        );
+        document.querySelectorAll(".verdict-form").forEach((f) =>
+          f.querySelectorAll(".vbtn").forEach(
+            (b) =>
+              (b.onclick = async () => {
+                try {
+                  f.querySelectorAll(".vbtn").forEach(
+                    (x) => (x.disabled = true),
+                  );
+                  const out = await api(`/api/runs/${data.run.id}/verdicts`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      key: f.dataset.k,
+                      version: Number(f.dataset.v),
+                      verdict: b.dataset.verdict,
+                      reason: f.querySelector("input").value,
+                    }),
+                  });
+                  if (out.rebuilding) {
+                    tab = "Overview";
+                    open(data.run.id);
+                  } else {
+                    lastSig = "";
+                    poll();
+                  }
+                } catch (err) {
+                  alert(err.message);
+                }
+              }),
+          ),
+        );
+        const imp = document.querySelector("#improve-inline");
+        if (imp)
+          imp.onsubmit = async (e) => {
+            e.preventDefault();
+            const fb = imp.querySelector("input").value.trim();
+            if (!fb) return;
+            imp.querySelector("button").disabled = true;
+            try {
+              await startImprove(fb, data.run.id);
+            } catch (err) {
+              alert(err.message);
+              imp.querySelector("button").disabled = false;
+            }
+          };
+        document.querySelectorAll(".downstream").forEach(async (el) => {
+          const r = await api(
+            `/api/runs/${data.run.id}/decisions/${encodeURIComponent(el.dataset.k)}/downstream`,
+          );
+          el.innerHTML = `<span class="k">If this changes, rebuild:</span> ${r.downstream.length ? r.downstream.map((k) => `<code>${esc(k)}</code>`).join(", ") : "nothing downstream"}`;
+        });
+      }
+
+      async function renderMermaid() {
+        const nodes = [...document.querySelectorAll("pre.mermaid")].filter(
+          (el) => {
+            let p = el.parentElement;
+            while (p) {
+              if (p.tagName === "DETAILS" && !p.open) return false;
+              p = p.parentElement;
+            }
+            return true;
+          },
+        );
+        if (!nodes.length) return;
+        try {
+          await mermaid.run({ nodes });
+        } catch (e) {
+          console.warn("mermaid", e);
+        }
+        if (tab === "Firmware") wireFlow();
+      }
+
+      // ---------------------------------------------------------------- model pickers + develop / improve flows
+      let modelList = [],
+        impSel = null;
+      const LS = {
+        get: (k) => {
+          try {
+            return localStorage.getItem(k);
+          } catch (e) {
+            return null;
+          }
+        },
+        set: (k, v) => {
+          try {
+            localStorage.setItem(k, v);
+          } catch (e) {
+            /* storage unavailable */
+          }
+        },
+      };
+
+      async function loadModels() {
+        try {
+          const { models, defaults } = await api("/api/models");
+          modelList = models;
+          const groups = [...new Set(models.map((m) => m.group))];
+          const opts = (sel) =>
+            groups
+              .map(
+                (g) =>
+                  `<optgroup label="${esc(g)}">${models
+                    .filter((m) => m.group === g)
+                    .map(
+                      (m) =>
+                        `<option value="${esc(m.id)}" ${m.available ? "" : "disabled"} ${m.id === sel ? "selected" : ""}>${esc(m.label)}${m.available ? (m.note ? ` (${esc(m.note)})` : "") : " (no key)"}</option>`,
+                    )
+                    .join("")}</optgroup>`,
+              )
+              .join("");
+          const pick = (role) => {
+            const saved = LS.get("eph-model-" + role);
+            // A remembered "offline" pick must not hide real models once API keys are set.
+            const staleOffline = saved === "offline" && defaults[role] !== "offline";
+            return !staleOffline && models.some((m) => m.id === saved && m.available)
+              ? saved
+              : defaults[role];
+          };
+          $("#m-eng").innerHTML = opts(pick("engineer"));
+          $("#m-br").innerHTML = opts(pick("bar_raiser"));
+          modelHint();
+        } catch (e) {
+          $("#model-hint").textContent =
+            "Couldn't load the model list: " + e.message;
+        }
+      }
+      function modelHint() {
+        const eng = modelList.find((m) => m.id === $("#m-eng").value),
+          br = modelList.find((m) => m.id === $("#m-br").value);
+        if (!eng || !br) return;
+        const noKey = modelList.filter((m) => !m.available).length;
+        $("#creation-mode").textContent =
+          eng.provider === "mock" || br.provider === "mock"
+            ? "Offline demo · canned answers"
+            : "ESP32 project";
+        $("#model-hint").innerHTML =
+          eng.provider === "mock" || br.provider === "mock"
+            ? "Offline demo uses canned answers: no API calls, no cost."
+            : eng.provider === br.provider
+              ? `Tip: a Bar Raiser from a <b>different AI company</b> gives the most independent review.${noKey ? ` Greyed-out models need an API key in <code>.env</code>.` : ""}`
+              : `Independent review: ${esc(eng.group)} builds, ${esc(br.group)} reviews.`;
+      }
+
+      $("#f").onsubmit = async (e) => {
+        e.preventDefault();
+        const text = $("#prompt").value.trim();
+        if (!text) {
+          $("#prompt").focus();
+          return;
+        }
+        const engineer_model = $("#m-eng").value,
+          bar_raiser_model = $("#m-br").value;
+        LS.set("eph-model-engineer", engineer_model);
+        LS.set("eph-model-bar_raiser", bar_raiser_model);
+        $("#go").disabled = true;
+        try {
+          const start = async (clarifications) => {
+            const { run_id } = await api("/api/runs", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                prompt: text,
+                clarifications,
+                engineer_model,
+                bar_raiser_model,
+              }),
+            });
+            $("#qa").innerHTML = "";
+            tab = "Overview";
+            open(run_id);
+          };
+          const { questions } = await api("/api/clarify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: text, engineer_model }),
+          });
+          if (questions.length) {
+            askQuestions(questions, start);
+            $("#go").disabled = false;
+          } else await start([]);
+        } catch (err) {
+          alert(err.message);
+          $("#go").disabled = false;
+        }
+      };
+      $("#m-eng").onchange = modelHint;
+      $("#m-br").onchange = modelHint;
+
+      async function renderImproveList() {
+        const runs = (await api("/api/runs")).filter(
+          (r) => r.status === "done",
+        );
+        if (!impSel && current && runs.some((r) => r.id === current))
+          impSel = current;
+        $("#imp-projects").innerHTML =
+          runs
+            .map(
+              (
+                r,
+              ) => `<button type="button" class="imp-card ${r.id === impSel ? "active" : ""}" data-id="${r.id}">
+      <div class="p">${esc(r.prompt)}</div>
+      <div class="s">${new Date(r.created_at).toLocaleString([], { dateStyle: "short", timeStyle: "short" })} · ${esc((r.delivery_status || "").replaceAll("_", " "))}${r.models?.engineer_label ? ` · ${esc(r.models.engineer_label)}` : ""}</div></button>`,
+            )
+            .join("") ||
+          `<div class="empty" style="padding:16px">No finished projects yet. Build one in “Develop project” first.</div>`;
+        document.querySelectorAll(".imp-card").forEach(
+          (el) =>
+            (el.onclick = () => {
+              impSel = el.dataset.id;
+              renderImproveList();
+              open(impSel);
+            }),
+        );
+        $("#imp-step2").classList.toggle("disabled", !impSel);
+        $("#imp-text").disabled = !impSel;
+        $("#imp-go").disabled = !impSel;
+        const chosen = runs.find((r) => r.id === impSel);
+        $("#imp-chosen").innerHTML = chosen
+          ? `Improving: <i>"${esc(chosen.prompt)}"</i>`
+          : "Choose a project above first.";
+      }
+      $("#imp-go").onclick = async () => {
+        const fb = $("#imp-text").value.trim();
+        if (!impSel || !fb) {
+          $("#imp-text").focus();
+          return;
+        }
+        $("#imp-go").disabled = true;
+        try {
+          await startImprove(fb, impSel);
+          $("#imp-text").value = "";
+        } catch (err) {
+          alert(err.message);
+        }
+        $("#imp-go").disabled = false;
+      };
+      document.querySelectorAll(".mode").forEach(
+        (m) =>
+          (m.onclick = () => {
+            mode = m.dataset.m;
+            document
+              .querySelectorAll(".mode")
+              .forEach((x) => x.setAttribute("aria-pressed", String(x === m)));
+            document
+              .querySelectorAll(".mode")
+              .forEach((x) => x.classList.toggle("active", x === m));
+            $("#f").hidden = mode !== "develop";
+            document.querySelector(".examples").hidden = mode !== "develop";
+            $("#improve-box").hidden = mode !== "improve";
+            $("#qa").innerHTML = "";
+            if (mode === "improve") renderImproveList();
+          }),
+      );
+      document.querySelectorAll(".examples a").forEach(
+        (a) =>
+          (a.onclick = (e) => {
+            e.preventDefault();
+            $("#prompt").value = a.dataset.prompt;
+            $("#prompt").focus();
+          }),
+      );
+      $("#new-project").onclick = () => {
+        $("#composer").open = true;
+        document.querySelector('.mode[data-m="develop"]').click();
+        $("#prompt").value = "";
+        $("#composer").scrollIntoView({ block: "start", behavior: "smooth" });
+        $("#prompt").focus({ preventScroll: true });
+      };
+
+      health();
+      loadModels();
+      loadRuns().then(() => {
+        const first = document.querySelector(".run-item");
+        if (first) open(first.dataset.id);
+      });
+    </script>
+  </body>
+</html>
